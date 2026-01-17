@@ -1,0 +1,3 @@
+GOOGLE_CLIENT_ID=1039256180600-r2hdrn83fp3iq7p0090kpnbh0pef0ocn.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback

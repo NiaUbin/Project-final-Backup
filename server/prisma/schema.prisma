@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String?
+  name      String?
+  picture   String?
+  role      String   @default("user")
+  enabled   Boolean  @default(true)
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  carts     Cart[]
+  orders    Order[]
+  stores    Store[]
+  reviews   Review[]
+  coupons   Coupon[]
+}
+
+model Product {
+  id                Int              @id @default(autoincrement())
+  title             String
+  description       String?
+  price             Float
+  discountPrice     Float? // ราคาลดพิเศษ
+  discountStartDate DateTime? // วันที่เริ่มลดราคา
+  discountEndDate   DateTime? // วันที่สิ้นสุดลดราคา
+  sold              Int              @default(0)
+  quantity          Int
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  categoryId        Int
+  images            Image[]
+  category          Category         @relation(fields: [categoryId], references: [id])
+  cartItems         ProductOnCart[]
+  orderItem         ProductOnOrder[]
+  storeId           Int?
+  store             Store?           @relation(fields: [storeId], references: [id])
+  reviews           Review[]
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+  @@index([storeId], map: "Product_storeId_fkey")
+}
+
+model Store {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  logo        String?
+  ownerId     Int
+  owner       User      @relation(fields: [ownerId], references: [id])
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  reviews     Review[]
+
+  @@index([ownerId], map: "Store_ownerId_fkey")
+}
+
+model Order {
+  id              Int              @id @default(autoincrement())
+  cartTotal       Float
+  discountAmount  Float            @default(0) // จำนวนส่วนลด
+  discountCode    String? // โค้ดส่วนลดที่ใช้
+  oderStatus      String           @default("Not Process")
+  shippingAddress String?
+  shippingPhone   String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  orderedById     Int
+  orderedBy       User             @relation(fields: [orderedById], references: [id])
+  products        ProductOnOrder[]
+  payments        Payment[]
+  couponId        Int?
+  coupon          Coupon?          @relation(fields: [couponId], references: [id])
+  notifications   Notification[]
+
+  @@index([orderedById], map: "Order_orderedById_fkey")
+  @@index([couponId])
+}
+
+model ProductOnOrder {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  orderId   Int
+  count     Int
+  price     Float
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviews   Review[]
+
+  @@index([orderId], map: "ProductOnOrder_orderId_fkey")
+  @@index([productId], map: "ProductOnOrder_productId_fkey")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  image     String? // รูปภาพสำหรับหมวดหมู่
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Cart {
+  id          Int             @id @default(autoincrement())
+  cartTotal   Float
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  orderedById Int
+  orderedBy   User            @relation(fields: [orderedById], references: [id])
+  products    ProductOnCart[]
+
+  @@index([orderedById], map: "Cart_orderedById_fkey")
+}
+
+model ProductOnCart {
+  id        Int     @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  count     Int
+  price     Float
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([cartId], map: "ProductOnCart_cartId_fkey")
+  @@index([productId], map: "ProductOnCart_productId_fkey")
+}
+
+// Customer review after purchase
+model Review {
+  id          Int      @id @default(autoincrement())
+  rating      Int
+  comment     String?
+  images      String? // JSON string of image URLs (optional)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      Int
+  productId   Int
+  storeId     Int?
+  orderItemId Int // reference ProductOnOrder to ensure purchased
+
+  user      User           @relation(fields: [userId], references: [id])
+  product   Product        @relation(fields: [productId], references: [id])
+  store     Store?         @relation(fields: [storeId], references: [id])
+  orderItem ProductOnOrder @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([productId], map: "Review_productId_idx")
+  @@index([storeId], map: "Review_storeId_idx")
+  @@index([userId], map: "Review_userId_idx")
+  @@index([orderItemId], map: "Review_orderItemId_idx")
+}
+
+model Image {
+  id         Int      @id @default(autoincrement())
+  asset_id   String
+  public_id  String
+  secure_url String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  productId  Int
+  url        String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId], map: "Image_productId_fkey")
+}
+
+model Payment {
+  id              Int       @id @default(autoincrement())
+  amount          Float
+  currency        String    @default("THB")
+  method          String
+  status          String    @default("pending")
+  customerEmail   String?
+  customerName    String?
+  customerPhone   String?
+  transactionId   String    @unique
+  gatewayId       String?
+  gatewayStatus   String?
+  metadata        String? // JSON string
+  qrCodeData      String? // ข้อมูล QR code สำหรับ payment
+  paymentSlipUrl  String? // URL ของรูปสลีปที่อัพโหลด
+  approvedBy      Int? // ID ของ admin ที่อนุมัติ
+  approvedAt      DateTime? // วันที่อนุมัติ
+  rejectedBy      Int? // ID ของ admin ที่ปฏิเสธ
+  rejectedAt      DateTime? // วันที่ปฏิเสธ
+  rejectionReason String? // เหตุผลที่ปฏิเสธ
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  orderId         Int
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  notifications   Notification[]
+
+  @@index([orderId], map: "Payment_orderId_fkey")
+}
+
+model Coupon {
+  id              Int       @id @default(autoincrement())
+  code            String    @unique
+  discountAmount  Float // จำนวนส่วนลด (บาท)
+  discountPercent Float? // เปอร์เซ็นต์ส่วนลด (ถ้ามี)
+  minPurchase     Float? // ราคาขั้นต่ำในการใช้
+  maxDiscount     Float? // ส่วนลดสูงสุด (บาท)
+  isUsed          Boolean   @default(false)
+  usedAt          DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id])
+  orders          Order[]
+
+  @@index([userId])
+  @@index([code])
+}
+
+// การแจ้งเตือน (สำหรับ payment status และ new products)
+model Notification {
+  id         Int       @id @default(autoincrement())
+  type       String    // 'payment_pending', 'payment_approved', 'payment_rejected', 'new_product'
+  title      String
+  message    String    @db.Text
+  isRead     Boolean   @default(false)
+  userId     Int? // ถ้าเป็นแจ้งเตือนสำหรับ user เฉพาะ
+  targetRole String? // 'admin', 'user', 'seller' - สำหรับแจ้งเตือนตาม role
+  orderId    Int? // ถ้าเกี่ยวข้องกับ order
+  paymentId  Int? // ถ้าเกี่ยวข้องกับ payment
+  productId  Int? // ถ้าเกี่ยวข้องกับ product ใหม่
+  storeId    Int? // ถ้าเกี่ยวข้องกับร้านค้า
+  data       String?   @db.Text // JSON string สำหรับข้อมูลเพิ่มเติม
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  order   Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([targetRole])
+  @@index([type])
+  @@index([productId])
+  @@index([storeId])
+}
