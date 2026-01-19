@@ -39,7 +39,7 @@ const Login = () => {
         <div className="bg-white rounded-sm shadow-lg overflow-hidden">
           {/* Header */}
           <div className="px-8 pt-8 pb-4">
-            <h1 className="text-xl font-medium text-gray-800">เข้าสู่ระบบ</h1>
+            <h1 className="text-xl font-medium text-center text-gray-800">เข้าสู่ระบบ</h1>
           </div>
 
           {/* Form */}
@@ -99,11 +99,11 @@ const Login = () => {
               )}
             </button>
 
-            {/* Forgot Password */}
+            {/* Forgot Password
             <div className="flex items-center justify-between text-xs">
               <Link to="#" className="text-[#0055aa] hover:text-[#ee4d2d]">ลืมรหัสผ่าน</Link>
               <Link to="#" className="text-[#0055aa] hover:text-[#ee4d2d]">เข้าสู่ระบบด้วย SMS</Link>
-            </div>
+            </div> */}
           </form>
 
           {/* Divider */}
@@ -117,10 +117,10 @@ const Login = () => {
 
           {/* Social Login */}
           <div className="px-8 pb-6 flex gap-2">
-            <a href="#" className="flex-1 py-2.5 border border-gray-300 rounded-sm flex items-center justify-center gap-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+            <button type="button" className="flex-1 py-2.5 border border-gray-300 rounded-sm flex items-center justify-center gap-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
               <i className="fab fa-facebook text-blue-600"></i>
               <span>Facebook</span>
-            </a>
+            </button>
             <a href="http://localhost:3000/api/auth/google" className="flex-1 py-2.5 border border-gray-300 rounded-sm flex items-center justify-center gap-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
               <i className="fab fa-google text-red-500"></i>
               <span>Google</span>

@@ -65,7 +65,7 @@ const Register = () => {
         <div className="bg-white rounded-sm shadow-lg overflow-hidden mt-12">
           {/* Header */}
           <div className="px-8 pt-8 pb-4">
-            <h1 className="text-xl font-medium text-gray-800">สมัครใหม่</h1>
+            <h1 className="text-xl font-medium text-center text-gray-800">สมัครใหม่</h1>
           </div>
 
           {/* Form */}
@@ -159,7 +159,7 @@ const Register = () => {
 
             {/* Terms */}
             <p className="text-xs text-gray-500 leading-relaxed">
-              เมื่อกดสมัคร คุณยอมรับ <Link to="#" className="text-[#ee4d2d]">เงื่อนไขการใช้งาน</Link> และ <Link to="#" className="text-[#ee4d2d]">นโยบายความเป็นส่วนตัว</Link>
+              เมื่อกดสมัคร คุณยอมรับ <span className="text-[#ee4d2d] cursor-pointer hover:underline">เงื่อนไขการใช้งาน</span> และ <span className="text-[#ee4d2d] cursor-pointer hover:underline">นโยบายความเป็นส่วนตัว</span>
             </p>
 
             {/* Submit */}
@@ -189,10 +189,10 @@ const Register = () => {
 
           {/* Social Register */}
           <div className="px-8 pb-6 flex gap-2">
-            <a href="#" className="flex-1 py-2.5 border border-gray-300 rounded-sm flex items-center justify-center gap-2 text-sm text-gray-700 hover:bg-gray-50">
+            <button type="button" className="flex-1 py-2.5 border border-gray-300 rounded-sm flex items-center justify-center gap-2 text-sm text-gray-700 hover:bg-gray-50">
               <i className="fab fa-facebook text-blue-600"></i>
               <span>Facebook</span>
-            </a>
+            </button>
             <a href="http://localhost:3000/api/auth/google" className="flex-1 py-2.5 border border-gray-300 rounded-sm flex items-center justify-center gap-2 text-sm text-gray-700 hover:bg-gray-50">
               <i className="fab fa-google text-red-500"></i>
               <span>Google</span>
