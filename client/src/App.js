@@ -31,8 +31,6 @@ import NewProductNotifications from './components/Notifications/NewProductNotifi
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { NotificationProvider } from './context/NotificationContext';
-// About
-import About from './components/About/About';
 import HelpPageShopeeStyle from './components/Help/help';
 
 // Protected Route Component
@@ -78,7 +76,6 @@ const AppContent = () => {
           <Route path="/discount-products" element={<DiscountProducts />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
           <Route path="/help" element={<HelpPageShopeeStyle />} />
           <Route path="/notifications" element={<NewProductNotifications />} />
           {/* Protected Routes */}
