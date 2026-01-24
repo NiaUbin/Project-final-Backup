@@ -314,7 +314,7 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
-      <div className="max-w-[1200px] mx-auto px-4 pt-24 sm:pt-28 pb-8">
+      <div className="max-w-[1000px] mx-auto px-4 pt-20 sm:pt-24 pb-6">
 
         {/* Breadcrumb */}
         <nav className="mb-4 text-xs sm:text-sm text-gray-500">
@@ -364,19 +364,27 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                {/* Navigation Arrows */}
-                <button
-                  onClick={handlePrevProduct}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors"
-                >
-                  <i className="fas fa-chevron-left"></i>
-                </button>
-                <button
-                  onClick={handleNextProduct}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors"
-                >
-                  <i className="fas fa-chevron-right"></i>
-                </button>
+                {/* Image Navigation Arrows - แสดงเฉพาะเมื่อมีรูปมากกว่า 1 รูป */}
+                {product.images && product.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setCurrentImageIndex(prev => prev === 0 ? product.images.length - 1 : prev - 1)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white text-gray-700 hover:text-[#ee4d2d] rounded-full flex items-center justify-center transition-all shadow-md hover:shadow-lg border border-gray-200"
+                    >
+                      <i className="fas fa-chevron-left text-sm"></i>
+                    </button>
+                    <button
+                      onClick={() => setCurrentImageIndex(prev => prev === product.images.length - 1 ? 0 : prev + 1)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white text-gray-700 hover:text-[#ee4d2d] rounded-full flex items-center justify-center transition-all shadow-md hover:shadow-lg border border-gray-200"
+                    >
+                      <i className="fas fa-chevron-right text-sm"></i>
+                    </button>
+                    {/* Image Counter */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 text-white text-xs rounded-full">
+                      {currentImageIndex + 1} / {product.images.length}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Thumbnails */}

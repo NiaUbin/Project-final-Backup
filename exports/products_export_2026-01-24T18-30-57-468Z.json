@@ -1,0 +1,38 @@
+{
+  "exportDate": "2026-01-24T18:30:57.469Z",
+  "totalProducts": 1,
+  "products": [
+    {
+      "id": 1,
+      "title": "test",
+      "description": "{\"description\":\"{\\\"description\\\":\\\"\\\",\\\"freeShipping\\\":false}\",\"freeShipping\":false}",
+      "price": 100,
+      "discountPrice": null,
+      "discountStartDate": null,
+      "discountEndDate": null,
+      "quantity": 110,
+      "sold": 1,
+      "categoryId": 1,
+      "category": {
+        "id": 1,
+        "name": "test",
+        "image": null
+      },
+      "storeId": 1,
+      "store": {
+        "id": 1,
+        "name": "iT",
+        "description": "IT",
+        "logo": "",
+        "owner": {
+          "id": 1,
+          "name": "user",
+          "email": "user@gmail.com"
+        }
+      },
+      "images": [],
+      "createdAt": "2026-01-24T18:26:26.306Z",
+      "updatedAt": "2026-01-24T18:26:45.673Z"
+    }
+  ]
+}

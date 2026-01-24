@@ -421,6 +421,37 @@ const SellerDashboard = () => {
         {/* Products Tab */}
         {activeTab === 'products' && (
           <div className="bg-white rounded-sm shadow-sm">
+            {/* Bestseller Section */}
+            {store.products?.length > 0 && (
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">🔥</span>
+                  <h3 className="font-medium text-gray-900">สินค้าขายดี Top 3</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[...store.products]
+                    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+                    .slice(0, 3)
+                    .map((p, index) => {
+                      const rankIcons = ['🥇', '🥈', '🥉'];
+                      const rankBg = ['bg-yellow-50 border-yellow-300', 'bg-gray-50 border-gray-300', 'bg-amber-50 border-amber-300'];
+                      return (
+                        <div key={p.id} className={`p-2 rounded-lg border-2 ${rankBg[index]} flex items-center gap-2`}>
+                          <span className="text-xl">{rankIcons[index]}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-900 truncate">{p.title}</p>
+                            <p className="text-[10px] text-[#ee4d2d]">ขายแล้ว {p.sold || 0} ชิ้น</p>
+                          </div>
+                          {p.images?.[0] && (
+                            <img src={p.images[0].url} alt="" className="w-10 h-10 rounded object-cover" />
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="font-medium text-gray-900">สินค้าของฉัน</h2>

@@ -28,6 +28,9 @@ const UserDashboard = ({ user, stats, loading }) => {
   const [maxDiscountProduct, setMaxDiscountProduct] = useState(null);
   const [prevAuthUser, setPrevAuthUser] = useState(authUser);
   const [isInitialMount, setIsInitialMount] = useState(true);
+  const [allProducts, setAllProducts] = useState([]);
+  const [allProductsLoading, setAllProductsLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
 
   const bannerImages = [
     { url: 'https://down-th.img.susercontent.com/file/th-11134258-81ztl-mgxkgfzrj8ctb9@resize_w1594_nl.webp', title: 'ช้อปปิ้งออนไลน์' },
@@ -40,6 +43,7 @@ const UserDashboard = ({ user, stats, loading }) => {
     loadFeaturedProducts();
     loadDiscountProducts();
     loadCategories();
+    loadAllProducts();
   }, []);
 
   useEffect(() => {
@@ -96,9 +100,14 @@ const UserDashboard = ({ user, stats, loading }) => {
     try {
       setCategoriesLoading(true);
       const response = await axios.get('/api/category');
+      console.log('📦 Categories response:', response.data);
       setCategories(response.data.categories || []);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      console.error('❌ Error loading categories:', error);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
     } finally {
       setCategoriesLoading(false);
     }
@@ -108,11 +117,17 @@ const UserDashboard = ({ user, stats, loading }) => {
     try {
       setProductsLoading(true);
       const response = await axios.get('/api/products/100');
+      console.log('📦 Featured products response:', response.data);
       const products = response.data.products || [];
       const limitedStock = products.filter(p => p.quantity > 0 && p.quantity < 20).sort((a, b) => a.quantity - b.quantity);
       setFeaturedProducts(limitedStock);
+      console.log('📦 Limited stock products:', limitedStock.length);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('❌ Error loading featured products:', error);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
     } finally {
       setProductsLoading(false);
     }
@@ -127,8 +142,29 @@ const UserDashboard = ({ user, stats, loading }) => {
       setDiscountProducts(onDiscount);
     } catch (error) {
       console.error('Error loading discount products:', error);
+      setApiError('ไม่สามารถโหลดสินค้าได้ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setDiscountLoading(false);
+    }
+  };
+
+  const loadAllProducts = async () => {
+    try {
+      setAllProductsLoading(true);
+      setApiError(null);
+      const response = await axios.get('/api/products/50');
+      console.log('📦 All products response:', response.data);
+      const products = response.data.products || [];
+      // แสดงเฉพาะสินค้าที่มีสต็อก
+      const availableProducts = products.filter(p => p.quantity > 0);
+      setAllProducts(availableProducts);
+      console.log('📦 Available products:', availableProducts.length);
+    } catch (error) {
+      console.error('❌ Error loading all products:', error);
+      setApiError('ไม่สามารถโหลดสินค้าได้ กรุณาตรวจสอบการเชื่อมต่อ');
+      toast.error('เกิดข้อผิดพลาดในการโหลดสินค้า');
+    } finally {
+      setAllProductsLoading(false);
     }
   };
 
@@ -336,6 +372,46 @@ const UserDashboard = ({ user, stats, loading }) => {
           </div>
         </div>
       )}
+
+      {/* All Products Section */}
+      <div className="max-w-[1200px] mx-auto px-4 py-3">
+        <div className="bg-white rounded-sm shadow-md">
+          <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <i className="fas fa-box text-[#ee4d2d]"></i>
+              <span className="font-medium text-gray-900">สินค้าทั้งหมด</span>
+            </div>
+            <Link to="/products" className="text-[#ee4d2d] text-sm hover:underline">ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i></Link>
+          </div>
+          <div className="p-3">
+            {apiError ? (
+              <div className="text-center py-8">
+                <div className="text-red-500 mb-2">
+                  <i className="fas fa-exclamation-circle text-2xl mb-2"></i>
+                  <p className="text-sm">{apiError}</p>
+                </div>
+                <button 
+                  onClick={loadAllProducts}
+                  className="mt-4 px-4 py-2 bg-[#ee4d2d] text-white rounded-sm hover:bg-[#d43a1a] transition-colors text-sm"
+                >
+                  ลองใหม่อีกครั้ง
+                </button>
+              </div>
+            ) : allProductsLoading ? (
+              <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div></div>
+            ) : allProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                {allProducts.slice(0, 12).map((product) => <ProductCard key={product.id} product={product} />)}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <i className="fas fa-box-open text-4xl mb-2"></i>
+                <p className="text-sm">ยังไม่มีสินค้า</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* CTA */}
       <div className="max-w-[1200px] mx-auto px-4 py-4">

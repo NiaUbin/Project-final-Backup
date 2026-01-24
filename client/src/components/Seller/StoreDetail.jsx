@@ -161,6 +161,14 @@ const StoreDetail = () => {
               </button>
             ))}
             <button
+              onClick={() => setActiveTab('bestsellers')}
+              className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${activeTab === 'bestsellers' ? 'text-[#ee4d2d]' : 'text-gray-600 hover:text-gray-900'
+                }`}
+            >
+              🔥 สินค้าขายดี
+              {activeTab === 'bestsellers' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#ee4d2d]"></div>}
+            </button>
+            <button
               onClick={() => setActiveTab('reviews')}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors relative ${activeTab === 'reviews' ? 'text-[#ee4d2d]' : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -260,6 +268,144 @@ const StoreDetail = () => {
                 })}
               </div>
             )}
+          </>
+        )}
+
+        {/* Bestsellers Tab */}
+        {activeTab === 'bestsellers' && (
+          <>
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#ee4d2d] to-[#ff6633] rounded-t-sm p-4 mb-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">🔥</span>
+                </div>
+                <div>
+                  <h2 className="text-white font-bold text-lg">สินค้าขายดี</h2>
+                  <p className="text-white/80 text-sm">สินค้ายอดนิยมที่ลูกค้าเลือกซื้อมากที่สุด</p>
+                </div>
+              </div>
+            </div>
+
+            {(() => {
+              // Sort products by sold count and take top 6
+              const bestsellers = [...(store.products || [])]
+                .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+                .slice(0, 6);
+
+              if (bestsellers.length === 0) {
+                return (
+                  <div className="bg-white rounded-b-sm shadow-sm p-12 text-center">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i className="fas fa-trophy text-gray-300 text-3xl"></i>
+                    </div>
+                    <h3 className="font-medium text-gray-900 mb-2">ยังไม่มีสินค้าขายดี</h3>
+                    <p className="text-sm text-gray-500">เมื่อมียอดขาย สินค้าจะแสดงที่นี่</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="bg-white rounded-b-sm shadow-sm p-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {bestsellers.map((p, index) => {
+                      const hasDiscount = p.discountPrice && p.discountPrice < p.price;
+                      const discountPercent = hasDiscount ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0;
+                      const soldCount = p.sold || 0;
+
+                      // Rank badges for top 3
+                      const rankBadges = ['🥇', '🥈', '🥉'];
+                      const rankColors = [
+                        'bg-yellow-400 text-yellow-900',
+                        'bg-gray-300 text-gray-700', 
+                        'bg-amber-600 text-amber-100'
+                      ];
+
+                      return (
+                        <Link
+                          key={p.id}
+                          to={`/product/${p.id}`}
+                          className="bg-white border-2 border-gray-100 rounded-lg overflow-hidden hover:shadow-lg hover:border-[#ee4d2d] transition-all group relative"
+                        >
+                          {/* Rank Badge */}
+                          {index < 3 && (
+                            <div className={`absolute top-2 left-2 z-10 w-8 h-8 ${rankColors[index]} rounded-full flex items-center justify-center shadow-lg`}>
+                              <span className="text-sm">{rankBadges[index]}</span>
+                            </div>
+                          )}
+                          {index >= 3 && (
+                            <div className="absolute top-2 left-2 z-10 w-6 h-6 bg-[#ee4d2d] text-white rounded-full flex items-center justify-center text-xs font-bold shadow">
+                              {index + 1}
+                            </div>
+                          )}
+
+                          {/* Product Image */}
+                          <div className="aspect-square bg-gray-50 relative overflow-hidden">
+                            {p.images?.[0] ? (
+                              <img
+                                src={p.images[0].url || p.images[0].secure_url}
+                                alt={p.title}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <i className="fas fa-image text-gray-200 text-3xl"></i>
+                              </div>
+                            )}
+
+                            {/* Discount Badge */}
+                            {hasDiscount && (
+                              <span className="absolute top-2 right-2 px-2 py-0.5 bg-[#ee4d2d] text-white text-[10px] font-bold rounded">
+                                -{discountPercent}%
+                              </span>
+                            )}
+
+                            {/* Out of stock overlay */}
+                            {p.quantity <= 0 && (
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span className="text-white text-xs font-medium">หมดสต็อก</span>
+                              </div>
+                            )}
+
+                            {/* Hot Sale Fire Animation */}
+                            {index < 3 && (
+                              <div className="absolute bottom-2 right-2 animate-bounce">
+                                <span className="text-xl">🔥</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Product Info */}
+                          <div className="p-3">
+                            <h3 className="text-xs text-gray-900 line-clamp-2 mb-2 group-hover:text-[#ee4d2d] font-medium min-h-[32px]">
+                              {p.title}
+                            </h3>
+
+                            <div className="flex items-baseline gap-1 mb-1">
+                              <span className="text-base font-bold text-[#ee4d2d]">
+                                ฿{(hasDiscount ? p.discountPrice : p.price).toLocaleString()}
+                              </span>
+                              {hasDiscount && (
+                                <span className="text-[10px] text-gray-400 line-through">
+                                  ฿{p.price.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Sold Count with Fire */}
+                            <div className="flex items-center gap-1 text-[11px]">
+                              <span className="text-[#ee4d2d] font-medium">
+                                🔥 ขายแล้ว {soldCount >= 1000 ? `${(soldCount / 1000).toFixed(1)}พัน` : soldCount} ชิ้น
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </>
         )}
 
