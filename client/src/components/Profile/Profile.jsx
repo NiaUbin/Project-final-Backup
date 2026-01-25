@@ -561,34 +561,6 @@ const Profile = () => {
                         </div>
                       </div>
 
-                      {/* Date of Birth */}
-                      <div>
-                        <label className="block text-sm text-gray-600 mb-1.5">วันเกิด</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={maskDateOfBirth(profileData.dateOfBirth)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-sm bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
-                            disabled
-                          />
-                          <input
-                            type="date"
-                            name="dateOfBirth"
-                            value={profileData.dateOfBirth}
-                            onChange={(e) => handleInputChange(e, 'profile')}
-                            className="hidden"
-                            ref={dateInputRef}
-                          />
-                          <button
-                            type="button"
-                            className="px-3 py-2 text-sm text-[#ee4d2d] hover:text-[#d73211]"
-                            onClick={() => dateInputRef.current?.showPicker?.() || dateInputRef.current?.click()}
-                          >
-                            เปลี่ยน
-                          </button>
-                        </div>
-                      </div>
-
                       {/* Save Button */}
                       <div className="pt-4">
                         <button

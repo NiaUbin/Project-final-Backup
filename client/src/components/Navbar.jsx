@@ -255,7 +255,7 @@ const Navbar = () => {
   const userNavigation = [
     { name: 'โปรไฟล์', href: '/profile', icon: 'fas fa-user' },
     { name: 'ประวัติการสั่งซื้อ', href: '/orders', icon: 'fas fa-receipt' },
-    { name: 'สิทธิ์การใช้งาน', href: '/roles', icon: 'fas fa-shield-alt' },
+    // { name: 'สิทธิ์การใช้งาน', href: '/roles', icon: 'fas fa-shield-alt' },
   ];
 
   return (

@@ -346,11 +346,7 @@ const ProductDetail = () => {
   const onDiscount = isProductOnDiscount(product);
   const discountPercent = onDiscount ? getDiscountPercentage(product) : 0;
   const remainingTime = onDiscount ? getRemainingDiscountTime(product) : null;
-
-  const rating = 4.9;
-  const reviewsCount = Math.floor(Math.random() * 1000) + 100;
-  const soldCount = getRandomSold(product.id);
-
+  
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
       <div className="max-w-[1000px] mx-auto px-4 pt-20 sm:pt-24 pb-6">
@@ -485,28 +481,6 @@ const ProductDetail = () => {
                   <h1 className="text-base sm:text-lg lg:text-xl font-medium text-gray-800 leading-tight">
                     {product.title}
                   </h1>
-                </div>
-
-                {/* Rating & Stats */}
-                <div className="flex items-center gap-3 sm:gap-4 flex-wrap text-sm">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#ee4d2d] font-medium border-b border-[#ee4d2d]">{rating}</span>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <i key={i} className={`fas fa-star text-xs ${i < Math.floor(rating) ? 'text-[#ee4d2d]' : 'text-gray-300'}`}></i>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="h-4 w-px bg-gray-300"></div>
-                  <div className="text-gray-600">
-                    <span className="border-b border-gray-500">{reviewsCount.toLocaleString()}</span>
-                    <span className="ml-1">รีวิว</span>
-                  </div>
-                  <div className="h-4 w-px bg-gray-300"></div>
-                  <div className="text-gray-600">
-                    <span>{soldCount > 1000 ? `${(soldCount / 1000).toFixed(1)}พัน` : soldCount}</span>
-                    <span className="ml-1">ขายแล้ว</span>
-                  </div>
                 </div>
               </div>
 

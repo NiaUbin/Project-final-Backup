@@ -249,7 +249,7 @@ const Cart = () => {
                 </div>
               </div>
               <Link to="/products">
-                <span className="text-xl font-bold text-gray-900">Shoppeo | รถเข็น</span>
+                <span className="text-xl font-bold text-gray-900">ตะกร้าสินค้า</span>
               </Link>
             </div>
           </div>
@@ -296,21 +296,19 @@ const Cart = () => {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10">
-              <div className="absolute inset-0 bg-white rounded-full"></div>
+              <div className="absolute inset-1 bg-white rounded-full"></div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <i className="fas fa-shopping-bag text-white text-lg"></i>
-                <span className="absolute text-orange-500 font-black text-sm" style={{ top: '8px', left: '8px' }}>S</span>
+                <span className="absolute text-orange-500 font-black text-sm" style={{ top: '12px', left: '2px' }}>BoxiFY</span>
               </div>
             </div>
-            <Link to="/products">
-              <span className="text-xl font-bold text-gray-900">Shoppeo | รถเข็น</span>
-            </Link>
+            <span className="text-xl font-bold text-gray-900">ตะกร้าสินค้า</span>
           </div>
           <div className="flex-1 max-w-md ml-4">
             <div className="flex">
               <input
                 type="text"
-                placeholder="เสื้อทำงานสีดำ"
+                placeholder="ค้นหาสินค้าในตะกร้า"
                 className="w-full px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none text-sm"
               />
               <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-r-md">
@@ -554,7 +552,7 @@ const Cart = () => {
 
               {/* Message */}
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                ถึงเค้าจะไม่ว่าง แต่เราว่างอยู่นะ!
+                ไม่มีสินค้าในตะกร้า!
               </h2>
 
               {/* Action Button */}

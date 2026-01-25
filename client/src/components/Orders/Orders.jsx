@@ -263,28 +263,10 @@ const Orders = () => {
               <nav className="p-2">
                 <ul className="space-y-0.5">
                   <li>
-                    <Link
-                      to="/profile"
-                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-sm"
-                    >
-                      <i className="fas fa-user w-4 text-center text-gray-400"></i>
-                      <span>บัญชีของฉัน</span>
-                    </Link>
-                  </li>
-                  <li>
                     <div className="flex items-center gap-2.5 px-3 py-2 text-sm bg-[#fef0ed] text-[#ee4d2d] font-medium rounded-sm">
                       <i className="fas fa-receipt w-4 text-center"></i>
                       <span>การซื้อของฉัน</span>
                     </div>
-                  </li>
-                  <li>
-                    <Link
-                      to="/profile"
-                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-sm"
-                    >
-                      <i className="fas fa-tag w-4 text-center text-gray-400"></i>
-                      <span>โค้ดส่วนลด</span>
-                    </Link>
                   </li>
                 </ul>
               </nav>
