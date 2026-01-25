@@ -30,7 +30,7 @@ model User {
 model Product {
   id                Int              @id @default(autoincrement())
   title             String
-  description       String?
+  description       String?  @db.Text
   price             Float
   discountPrice     Float? // ราคาลดพิเศษ
   discountStartDate DateTime? // วันที่เริ่มลดราคา
@@ -90,14 +90,15 @@ model Order {
 }
 
 model ProductOnOrder {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  orderId   Int
-  count     Int
-  price     Float
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  reviews   Review[]
+  id               Int      @id @default(autoincrement())
+  productId        Int
+  orderId          Int
+  count            Int
+  price            Float
+  selectedVariants String?  @db.Text // JSON string of selected variants
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviews          Review[]
 
   @@index([orderId], map: "ProductOnOrder_orderId_fkey")
   @@index([productId], map: "ProductOnOrder_productId_fkey")
@@ -125,13 +126,14 @@ model Cart {
 }
 
 model ProductOnCart {
-  id        Int     @id @default(autoincrement())
-  cartId    Int
-  productId Int
-  count     Int
-  price     Float
-  cart      Cart    @relation(fields: [cartId], references: [id])
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id               Int     @id @default(autoincrement())
+  cartId           Int
+  productId        Int
+  count            Int
+  price            Float
+  selectedVariants String? @db.Text // JSON string of selected variants e.g. {"ขนาดจอ": "19 นิ้ว"}
+  cart             Cart    @relation(fields: [cartId], references: [id])
+  product          Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([cartId], map: "ProductOnCart_cartId_fkey")
   @@index([productId], map: "ProductOnCart_productId_fkey")

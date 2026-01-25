@@ -759,11 +759,11 @@ const Products = () => {
                       )}
 
                       {/* Product Image */}
-                      <div className="relative aspect-square overflow-hidden bg-white">
+                      <div className="relative aspect-square overflow-hidden bg-white border-b border-gray-100">
                         <img
                           src={p.images?.[0]?.url || 'https://via.placeholder.com/400x400?text=No+Image'}
                           alt={p.title}
-                          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => { e.target.src = 'https://via.placeholder.com/400x400?text=No+Image'; }}
                         />
 

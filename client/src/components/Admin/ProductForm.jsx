@@ -206,24 +206,37 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSubmitting) return;
+    console.log('📝 Form submit triggered');
+    console.log('📝 Current form state:', productForm);
+    console.log('📝 isSubmitting:', isSubmitting);
+
+    if (isSubmitting) {
+      console.log('⚠️ Already submitting, returning');
+      return;
+    }
 
     if (!productForm.title.trim()) {
+      console.log('❌ Validation failed: title is empty');
       toast.error('กรุณากรอกชื่อสินค้า');
       return;
     }
     if (!productForm.price || parseFloat(productForm.price) <= 0) {
+      console.log('❌ Validation failed: price is invalid');
       toast.error('กรุณากรอกราคาที่ถูกต้อง');
       return;
     }
     if (!productForm.quantity || parseInt(productForm.quantity) < 0) {
+      console.log('❌ Validation failed: quantity is invalid');
       toast.error('กรุณากรอกจำนวนที่ถูกต้อง');
       return;
     }
     if (!productForm.categoryId) {
+      console.log('❌ Validation failed: category is not selected');
       toast.error('กรุณาเลือกหมวดหมู่');
       return;
     }
+
+    console.log('✅ All validations passed, proceeding with submission');
 
     try {
       setIsSubmitting(true);
@@ -627,13 +640,13 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
             />
           </div>
 
-          {/* Product Variants */}
+          {/* Product Variants with Pricing */}
           <div className="bg-white rounded-sm shadow-sm p-4">
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
               <h3 className="font-medium text-gray-900 flex items-center gap-2">
                 <i className="fas fa-palette text-purple-500"></i>
                 ตัวเลือกสินค้า
-                <span className="text-xs text-gray-400 font-normal">(สี, ขนาด, ฯลฯ)</span>
+                <span className="text-xs text-gray-400 font-normal">(สี, ขนาด พร้อมราคา)</span>
               </h3>
               {productForm.variants.length > 0 && (
                 <span className="px-2 py-0.5 bg-purple-100 text-purple-600 rounded text-xs font-medium">
@@ -646,12 +659,13 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
               <div className="text-center py-6 text-gray-400">
                 <i className="fas fa-palette text-3xl mb-2"></i>
                 <p className="text-sm">ยังไม่มีตัวเลือกสินค้า</p>
+                <p className="text-xs mt-1">เพิ่มตัวเลือกเพื่อกำหนดราคาแยกตามตัวเลือก</p>
               </div>
             ) : (
-              <div className="space-y-3 mb-4">
+              <div className="space-y-4 mb-4">
                 {productForm.variants.map((variant, variantIndex) => (
-                  <div key={variantIndex} className="p-3 bg-gray-50 rounded-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={variantIndex} className="p-4 bg-gray-50 rounded-sm border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
                       <input
                         type="text"
                         value={variant.name}
@@ -660,8 +674,8 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
                           newVariants[variantIndex].name = e.target.value;
                           setProductForm(prev => ({ ...prev, variants: newVariants }));
                         }}
-                        className="flex-1 px-3 py-1.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
-                        placeholder="ชื่อตัวเลือก (เช่น สี, ขนาด)"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] font-medium"
+                        placeholder="ชื่อตัวเลือก (เช่น ขนาดจอ, สี)"
                       />
                       <button
                         type="button"
@@ -669,54 +683,120 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
                           const newVariants = productForm.variants.filter((_, i) => i !== variantIndex);
                           setProductForm(prev => ({ ...prev, variants: newVariants }));
                         }}
-                        className="ml-2 px-2 py-1.5 text-red-500 hover:bg-red-50 rounded-sm text-sm"
+                        className="ml-2 px-3 py-2 text-red-500 hover:bg-red-50 rounded-sm text-sm"
                       >
                         <i className="fas fa-trash"></i>
                       </button>
                     </div>
                     
-                    <input
-                      type="text"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const value = e.target.value.trim();
-                          if (value && !variant.options.includes(value)) {
-                            const newVariants = [...productForm.variants];
-                            newVariants[variantIndex].options = [...newVariants[variantIndex].options, value];
-                            setProductForm(prev => ({ ...prev, variants: newVariants }));
-                            e.target.value = '';
-                          }
-                        }
-                      }}
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] mb-2"
-                      placeholder="พิมพ์ตัวเลือกแล้วกด Enter (เช่น แดง, น้ำเงิน)"
-                    />
-                    
-                    <div className="flex flex-wrap gap-1.5">
-                      {variant.options.map((option, optIndex) => (
-                        <span
-                          key={optIndex}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-[#ee4d2d] text-white rounded-sm text-xs"
-                        >
-                          {option}
-                          <button
-                            type="button"
-                            onClick={() => {
+                    {/* Add new option with price */}
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        id={`option-name-${variantIndex}`}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
+                        placeholder="ชื่อตัวเลือก (เช่น 19 นิ้ว)"
+                      />
+                      <input
+                        type="number"
+                        id={`option-price-${variantIndex}`}
+                        className="w-32 px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
+                        placeholder="ราคา (บาท)"
+                        min="0"
+                        step="1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nameInput = document.getElementById(`option-name-${variantIndex}`);
+                          const priceInput = document.getElementById(`option-price-${variantIndex}`);
+                          const optionName = nameInput.value.trim();
+                          const optionPrice = parseFloat(priceInput.value) || 0;
+                          
+                          if (optionName) {
+                            // Check if option name already exists
+                            const existingOption = variant.options.find(opt => 
+                              (typeof opt === 'object' ? opt.name : opt) === optionName
+                            );
+                            
+                            if (!existingOption) {
                               const newVariants = [...productForm.variants];
-                              newVariants[variantIndex].options = newVariants[variantIndex].options.filter((_, i) => i !== optIndex);
+                              // Ensure options is always array of objects
+                              const newOption = { name: optionName, price: optionPrice };
+                              newVariants[variantIndex].options = [...newVariants[variantIndex].options, newOption];
                               setProductForm(prev => ({ ...prev, variants: newVariants }));
-                            }}
-                            className="hover:text-red-200"
-                          >
-                            <i className="fas fa-times text-[10px]"></i>
-                          </button>
-                        </span>
-                      ))}
-                      {variant.options.length === 0 && (
-                        <span className="text-xs text-gray-400 italic">พิมพ์แล้วกด Enter เพื่อเพิ่ม</span>
-                      )}
+                              nameInput.value = '';
+                              priceInput.value = '';
+                            }
+                          }
+                        }}
+                        className="px-4 py-2 bg-[#ee4d2d] text-white rounded-sm text-sm hover:bg-[#d73211] transition-colors flex items-center gap-1"
+                      >
+                        <i className="fas fa-plus"></i>
+                        เพิ่ม
+                      </button>
                     </div>
+                    
+                    {/* Options list with prices */}
+                    {variant.options.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="text-xs text-gray-500 mb-2">รายการตัวเลือก:</div>
+                        {variant.options.map((option, optIndex) => {
+                          // Support both old format (string) and new format (object)
+                          const optionName = typeof option === 'object' ? option.name : option;
+                          const optionPrice = typeof option === 'object' ? option.price : 0;
+                          
+                          return (
+                            <div
+                              key={optIndex}
+                              className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-sm"
+                            >
+                              <span className="flex-1 text-sm text-gray-700">
+                                <i className="fas fa-tag text-purple-400 mr-2"></i>
+                                {optionName}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-[#ee4d2d] font-medium">
+                                  ฿{optionPrice.toLocaleString()}
+                                </span>
+                                <input
+                                  type="number"
+                                  value={optionPrice}
+                                  onChange={(e) => {
+                                    const newPrice = parseFloat(e.target.value) || 0;
+                                    const newVariants = [...productForm.variants];
+                                    // Update to object format if it was string
+                                    newVariants[variantIndex].options[optIndex] = {
+                                      name: optionName,
+                                      price: newPrice
+                                    };
+                                    setProductForm(prev => ({ ...prev, variants: newVariants }));
+                                  }}
+                                  className="w-24 px-2 py-1 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] text-right"
+                                  placeholder="ราคา"
+                                  min="0"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newVariants = [...productForm.variants];
+                                    newVariants[variantIndex].options = newVariants[variantIndex].options.filter((_, i) => i !== optIndex);
+                                    setProductForm(prev => ({ ...prev, variants: newVariants }));
+                                  }}
+                                  className="p-1 text-red-500 hover:bg-red-50 rounded-sm"
+                                >
+                                  <i className="fas fa-times"></i>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-3 text-gray-400 text-xs border border-dashed border-gray-300 rounded-sm">
+                        ยังไม่มีตัวเลือก - กรอกชื่อและราคาด้านบนแล้วกดเพิ่ม
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -733,7 +813,7 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
               className="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded-sm hover:border-[#ee4d2d] hover:text-[#ee4d2d] transition-colors text-sm flex items-center justify-center gap-2"
             >
               <i className="fas fa-plus"></i>
-              เพิ่มตัวเลือกสินค้า
+              เพิ่มตัวเลือกสินค้า (พร้อมราคา)
             </button>
           </div>
 
@@ -761,8 +841,12 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
               ยกเลิก
             </button>
             <button
-              type="submit"
+              type="button"
               disabled={isSubmitting}
+              onClick={(e) => {
+                console.log('🔘 Submit button clicked!');
+                handleSubmit(e);
+              }}
               className={`px-6 py-2 rounded-sm text-sm font-medium transition-all ${
                 isSubmitting
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'

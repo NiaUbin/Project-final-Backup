@@ -895,6 +895,17 @@ exports.updateBySeller = async (req, res) => {
     try {
         const { id } = req.params;
         const uploadedFiles = req.files || [];
+        
+        // Debug logging
+        console.log('========== updateBySeller START ==========');
+        console.log('📝 Product ID:', id);
+        console.log('📝 Request body keys:', Object.keys(req.body));
+        console.log('📝 title:', req.body.title);
+        console.log('📝 price:', req.body.price);
+        console.log('📝 quantity:', req.body.quantity);
+        console.log('📝 categoryId:', req.body.categoryId);
+        console.log('📝 variants:', req.body.variants ? 'present' : 'not present');
+        
         const store = await prisma.store.findFirst({ where: { ownerId: req.user.id } });
         if (!store) return res.status(400).json({ message: 'ยังไม่มีร้านค้า' });
         const product = await prisma.product.findUnique({ where: { id: parseInt(id) } });
@@ -1104,8 +1115,13 @@ exports.updateBySeller = async (req, res) => {
 
         res.json({ message: 'อัปเดตสินค้าสำเร็จ', product: productWithVariants });
     } catch (error) {
-        console.error('updateBySeller error:', error);
-        res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ' });
+        console.error('========== updateBySeller ERROR ==========');
+        console.error('❌ Error name:', error.name);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        if (error.code) console.error('❌ Error code:', error.code);
+        if (error.meta) console.error('❌ Error meta:', error.meta);
+        res.status(500).json({ message: 'เกิดข้อผิดพลาดในระบบ', error: error.message });
     }
 };
 

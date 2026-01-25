@@ -77,7 +77,9 @@ const ProductDetail = () => {
       const defaultVariants = {};
       parsedVariants.forEach(variant => {
         if (variant && variant.name && variant.options && variant.options.length > 0) {
-          defaultVariants[variant.name] = variant.options[0];
+          // Support both old format (string) and new format (object with name/price)
+          const firstOption = variant.options[0];
+          defaultVariants[variant.name] = typeof firstOption === 'object' ? firstOption.name : firstOption;
         }
       });
       setSelectedVariants(defaultVariants);
@@ -173,7 +175,8 @@ const ProductDetail = () => {
       }
     }
 
-    const priceToUse = getCurrentPrice(product);
+    // Use variant price if available, otherwise use product price
+    const priceToUse = getVariantTotalPrice();
 
     const productData = {
       id: product.id,
@@ -252,6 +255,42 @@ const ProductDetail = () => {
 
     return [];
   }, [product]);
+
+  // Calculate total price based on selected variant options
+  const getVariantTotalPrice = () => {
+    if (!product) return 0;
+    
+    // Start with base price or discount price
+    let basePrice = getCurrentPrice(product);
+    
+    // Check if any variant has priced options
+    if (productVariants.length > 0) {
+      let hasVariantPrice = false;
+      let variantPrice = 0;
+      
+      productVariants.forEach(variant => {
+        const selectedOptionName = selectedVariants[variant.name];
+        if (selectedOptionName && variant.options) {
+          const selectedOption = variant.options.find(opt => {
+            const optName = typeof opt === 'object' ? opt.name : opt;
+            return optName === selectedOptionName;
+          });
+          
+          if (selectedOption && typeof selectedOption === 'object' && selectedOption.price > 0) {
+            hasVariantPrice = true;
+            variantPrice += selectedOption.price;
+          }
+        }
+      });
+      
+      // If we have variant prices, use them; otherwise use base price
+      if (hasVariantPrice) {
+        return variantPrice;
+      }
+    }
+    
+    return basePrice;
+  };
 
   const handleQuantityChange = (change) => {
     const newQuantity = quantity + change;
@@ -473,31 +512,62 @@ const ProductDetail = () => {
 
               {/* Price Section */}
               <div className="bg-[#fafafa] p-4 sm:p-5 mb-4">
-                {onDiscount ? (
-                  <>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm text-gray-500 line-through">฿{product.price.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
+                {(() => {
+                  const variantPrice = getVariantTotalPrice();
+                  const hasVariantPricing = productVariants.some(v => 
+                    v.options?.some(opt => typeof opt === 'object' && opt.price > 0)
+                  );
+                  
+                  if (hasVariantPricing) {
+                    return (
+                      <>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-gray-500">ราคาตามตัวเลือก</span>
+                        </div>
+                        <span className="text-2xl sm:text-3xl font-medium text-[#ee4d2d]">
+                          ฿{variantPrice.toLocaleString()}
+                        </span>
+                        {Object.keys(selectedVariants).length > 0 && (
+                          <div className="mt-2 text-xs text-gray-500">
+                            {Object.entries(selectedVariants).map(([name, value]) => (
+                              <span key={name} className="mr-2 px-2 py-0.5 bg-gray-100 rounded">
+                                {name}: {value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    );
+                  } else if (onDiscount) {
+                    return (
+                      <>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm text-gray-500 line-through">฿{product.price.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl sm:text-3xl font-medium text-[#ee4d2d]">
+                            ฿{getCurrentPrice(product).toLocaleString()}
+                          </span>
+                          <span className="px-1.5 py-0.5 bg-[#ee4d2d] text-white text-xs font-bold rounded-sm">
+                            -{discountPercent}% ลด
+                          </span>
+                        </div>
+                        {remainingTime && (
+                          <div className="mt-2 flex items-center gap-2 text-sm">
+                            <i className="fas fa-clock text-[#ee4d2d]"></i>
+                            <span className="text-[#ee4d2d] font-medium">สิ้นสุดใน {remainingTime}</span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  } else {
+                    return (
                       <span className="text-2xl sm:text-3xl font-medium text-[#ee4d2d]">
-                        ฿{getCurrentPrice(product).toLocaleString()}
+                        ฿{product.price.toLocaleString()}
                       </span>
-                      <span className="px-1.5 py-0.5 bg-[#ee4d2d] text-white text-xs font-bold rounded-sm">
-                        -{discountPercent}% ลด
-                      </span>
-                    </div>
-                    {remainingTime && (
-                      <div className="mt-2 flex items-center gap-2 text-sm">
-                        <i className="fas fa-clock text-[#ee4d2d]"></i>
-                        <span className="text-[#ee4d2d] font-medium">สิ้นสุดใน {remainingTime}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-2xl sm:text-3xl font-medium text-[#ee4d2d]">
-                    ฿{product.price.toLocaleString()}
-                  </span>
-                )}
+                    );
+                  }
+                })()}
               </div>
 
               {/* Shipping */}
@@ -528,18 +598,30 @@ const ProductDetail = () => {
                     <span className="text-sm text-gray-500 w-24 flex-shrink-0 pt-2">{variant.name}</span>
                     <div className="flex-1">
                       <div className="flex gap-2 flex-wrap">
-                        {variant.options.map((option) => (
-                          <button
-                            key={option}
-                            onClick={() => setSelectedVariants(prev => ({ ...prev, [variant.name]: option }))}
-                            className={`px-4 py-2 rounded-sm border text-sm transition-all ${selectedVariants[variant.name] === option
-                                ? 'border-[#ee4d2d] text-[#ee4d2d] bg-[#fff0ed]'
-                                : 'border-gray-300 text-gray-700 hover:border-[#ee4d2d] hover:text-[#ee4d2d]'
-                              }`}
-                          >
-                            {option}
-                          </button>
-                        ))}
+                        {variant.options.map((option, optIndex) => {
+                          // Support both old format (string) and new format (object with name/price)
+                          const optionName = typeof option === 'object' ? option.name : option;
+                          const optionPrice = typeof option === 'object' ? option.price : null;
+                          const isSelected = selectedVariants[variant.name] === optionName;
+                          
+                          return (
+                            <button
+                              key={optIndex}
+                              onClick={() => setSelectedVariants(prev => ({ ...prev, [variant.name]: optionName }))}
+                              className={`px-4 py-2 rounded-sm border text-sm transition-all flex flex-col items-center ${isSelected
+                                  ? 'border-[#ee4d2d] text-[#ee4d2d] bg-[#fff0ed]'
+                                  : 'border-gray-300 text-gray-700 hover:border-[#ee4d2d] hover:text-[#ee4d2d]'
+                                }`}
+                            >
+                              <span>{optionName}</span>
+                              {optionPrice !== null && optionPrice > 0 && (
+                                <span className={`text-xs mt-0.5 ${isSelected ? 'text-[#ee4d2d]' : 'text-gray-500'}`}>
+                                  ฿{optionPrice.toLocaleString()}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

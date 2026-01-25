@@ -339,7 +339,22 @@ const PaymentCheckout = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm text-gray-900 line-clamp-1">{item.product?.title || 'สินค้า'}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5">ตัวเลือก: {item.variant || 'ไม่ระบุ'}</p>
+                        {(() => {
+                           let variants = '';
+                           try {
+                             if (item.selectedVariants) {
+                               const parsed = typeof item.selectedVariants === 'string' 
+                                 ? JSON.parse(item.selectedVariants) 
+                                 : item.selectedVariants;
+                               variants = Object.entries(parsed).map(([k, v]) => `${k}: ${v}`).join(', ');
+                             }
+                           } catch (e) {}
+                           return variants ? (
+                             <p className="text-xs text-gray-500 mt-0.5">ตัวเลือก: {variants}</p>
+                           ) : (
+                             <p className="text-xs text-gray-500 mt-0.5">ตัวเลือก: {item.variant || 'ไม่ระบุ'}</p>
+                           );
+                        })()}
                         <div className="flex items-center justify-between mt-1">
                           <span className="text-xs text-gray-400">x{item.count || 1}</span>
                           <span className="text-sm font-medium text-[#ee4d2d]">฿{(item.price * (item.count || 1)).toLocaleString()}</span>

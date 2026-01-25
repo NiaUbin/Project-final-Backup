@@ -65,7 +65,7 @@ const Register = () => {
         <div className="bg-white rounded-sm shadow-lg overflow-hidden mt-12">
           {/* Header */}
           <div className="px-8 pt-8 pb-4">
-            <h1 className="text-xl font-medium text-center text-gray-800">สมัครใหม่</h1>
+            <h1 className="text-xl font-medium text-center text-gray-800">สมัครสมาชิก</h1>
           </div>
 
           {/* Form */}

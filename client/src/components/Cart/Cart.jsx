@@ -399,16 +399,32 @@ const Cart = () => {
                             </h3>
                           {/* Selected Variants/Options */}
                           {(() => {
-                            const selected = item?.selectedVariants || item?.product?.selectedVariants || getSelectedVariantsForProduct(item?.product?.id);
+                            let selected = null;
+                            
+                            // 1. Try to get from item directly (from DB)
+                            if (item.selectedVariants) {
+                              try {
+                                selected = typeof item.selectedVariants === 'string' 
+                                  ? JSON.parse(item.selectedVariants) 
+                                  : item.selectedVariants;
+                              } catch (e) {
+                                console.error('Error parsing variants', e);
+                              }
+                            }
+                            
+                            // 2. Fallback to localStorage or other sources
+                            if (!selected) {
+                              selected = item?.product?.selectedVariants || getSelectedVariantsForProduct(item?.product?.id);
+                            }
+
                             if (selected && typeof selected === 'object' && Object.keys(selected).length > 0) {
                               const variantText = Object.entries(selected)
-                                .map(([_, value]) => String(value))
+                                .map(([name, value]) => `${name}: ${value}`)
                                 .join(', ');
                               return (
                                 <div className="text-xs text-gray-600 mb-2 flex items-center gap-1">
-                                  <span className="text-gray-700">ตัวเลือกสินค้า:</span>
+                                  <span className="text-gray-700">ตัวเลือก:</span>
                                   <span className="truncate">{variantText}</span>
-                                  <i className="fas fa-chevron-down text-[10px] text-gray-400"></i>
                                 </div>
                               );
                             }

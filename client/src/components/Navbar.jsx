@@ -266,9 +266,7 @@ const Navbar = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 sm:gap-4">
               <Link to="/seller" className="hover:underline text-[11px] sm:text-xs">Seller Centre</Link>
-              <Link to="/seller/register" className="hover:underline text-[11px] sm:text-xs">เปิดร้านค้า</Link>
               <Link to="/stores" className="hover:underline text-[11px] sm:text-xs">ร้านค้า</Link>
-              <span className="hidden md:inline">ติดตามเรา</span>
               <div className="hidden md:flex items-center gap-2">
                 <i className="fab fa-facebook text-sm cursor-pointer hover:opacity-80"></i>
                 <i className="fab fa-instagram text-sm cursor-pointer hover:opacity-80"></i>

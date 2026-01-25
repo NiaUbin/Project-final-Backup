@@ -11,6 +11,7 @@ import UserDashboard from './components/Dashboard/UserDashboard';
 import AdminPanel from './components/Admin/AdminPanel';
 import Products from './components/Products/Products';
 import DiscountProducts from './components/Products/DiscountProducts';
+import ITProducts from './components/Products/ITProducts';
 import Cart from './components/Cart/Cart';
 import Orders from './components/Orders/Orders';
 import Profile from './components/Profile/Profile';
@@ -74,6 +75,7 @@ const AppContent = () => {
           {/* Public Routes */}
           <Route path="/products" element={<Products />} />
           <Route path="/discount-products" element={<DiscountProducts />} />
+          <Route path="/it-products" element={<ITProducts />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/help" element={<HelpPageShopeeStyle />} />

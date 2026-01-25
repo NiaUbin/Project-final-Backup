@@ -80,7 +80,7 @@ exports.changeRole = async (req, res) => {
 
 exports.userCart = async (req, res) => {
     try {
-        const { productId, count } = req.body;
+        const { productId, count, price, productData } = req.body;
         const userId = req.user.id; // จาก authCheck middleware
         
         // ดึงข้อมูลสินค้า
@@ -91,6 +91,14 @@ exports.userCart = async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: "ไม่พบสินค้า" });
         }
+        
+        // ใช้ราคาที่ส่งมา (ถ้ามี) หรือใช้ราคาจากสินค้า
+        const priceToUse = price ? parseFloat(price) : product.price;
+
+        // เตรียมข้อมูล variants (ถ้ามี)
+        const selectedVariants = productData && productData.selectedVariants 
+            ? JSON.stringify(productData.selectedVariants) 
+            : null;
         
         // หาหรือสร้างตะกร้า
         let cart = await prisma.cart.findFirst({
@@ -112,14 +120,15 @@ exports.userCart = async (req, res) => {
                 cartId: cart.id,
                 productId: parseInt(productId),
                 count: parseInt(count),
-                price: product.price // ใช้ราคาจากสินค้า
+                price: priceToUse, // ใช้ราคาที่ส่งมา หรือราคาตาม variant
+                selectedVariants: selectedVariants
             }
         });
         
         // อัพเดตยอดรวม
         const updatedCart = await prisma.cart.update({
             where: { id: cart.id },
-            data: { cartTotal: { increment: product.price * parseInt(count) } },
+            data: { cartTotal: { increment: priceToUse * parseInt(count) } },
             include: { 
                 products: { 
                     include: { 
@@ -607,7 +616,8 @@ exports.saveOrder = async (req, res) => {
                     orderId: order.id,
                     productId: cartItem.productId,
                     count: cartItem.count,
-                    price: cartItem.price
+                    price: cartItem.price,
+                    selectedVariants: cartItem.selectedVariants
                 }
             });
             

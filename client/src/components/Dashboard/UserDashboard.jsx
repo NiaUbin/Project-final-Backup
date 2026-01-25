@@ -7,7 +7,12 @@ import { toast } from "react-toastify";
 import LoginPopup from "../Common/LoginPopup";
 import OutOfStockAlert from "../Common/OutOfStockAlert";
 import DiscountAlert from "../Common/DiscountAlert";
-import { isProductOnDiscount, getCurrentPrice, getDiscountPercentage, getRemainingDiscountTime } from "../../utils/productDiscount";
+import {
+  isProductOnDiscount,
+  getCurrentPrice,
+  getDiscountPercentage,
+  getRemainingDiscountTime,
+} from "../../utils/productDiscount";
 
 const UserDashboard = ({ user, stats, loading }) => {
   const { addToCart } = useCart();
@@ -15,11 +20,9 @@ const UserDashboard = ({ user, stats, loading }) => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
-  const [selectedProductTitle, setSelectedProductTitle] = useState('');
+  const [selectedProductTitle, setSelectedProductTitle] = useState("");
   const [showOutOfStockAlert, setShowOutOfStockAlert] = useState(false);
-  const [outOfStockProductTitle, setOutOfStockProductTitle] = useState('');
-  const [currentBannerSlide, setCurrentBannerSlide] = useState(0);
-  const [isAutoSliding, setIsAutoSliding] = useState(true);
+  const [outOfStockProductTitle, setOutOfStockProductTitle] = useState("");
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [discountProducts, setDiscountProducts] = useState([]);
@@ -31,13 +34,8 @@ const UserDashboard = ({ user, stats, loading }) => {
   const [allProducts, setAllProducts] = useState([]);
   const [allProductsLoading, setAllProductsLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
-
-  const bannerImages = [
-    { url: 'https://down-th.img.susercontent.com/file/th-11134258-81ztl-mgxkgfzrj8ctb9@resize_w1594_nl.webp', title: 'ช้อปปิ้งออนไลน์' },
-    { url: 'https://down-th.img.susercontent.com/file/th-11134258-81ztl-mgpzlyrwcxe01e@resize_w1594_nl.webp', title: 'สินค้าลดราคาพิเศษ' },
-    { url: 'https://down-th.img.susercontent.com/file/th-11134258-81ztg-mgrkanw1s1l532@resize_w1594_nl.webp', title: 'โปรโมชั่นสุดคุ้ม' },
-    { url: 'https://down-th.img.susercontent.com/file/th-11134258-81zti-mgew7ihmelu60f@resize_w1594_nl.webp', title: 'สินค้าใหม่ล่าสุด' },
-  ];
+  const [lowStockPage, setLowStockPage] = useState(0);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     loadFeaturedProducts();
@@ -53,35 +51,66 @@ const UserDashboard = ({ user, stats, loading }) => {
   }, []);
 
   useEffect(() => {
-    if (isInitialMount) { setPrevAuthUser(authUser); return; }
+    if (isInitialMount) {
+      setPrevAuthUser(authUser);
+      return;
+    }
     const wasLoggedOut = prevAuthUser === null || prevAuthUser === undefined;
-    const isNowLoggedIn = authUser !== null && authUser !== undefined && authUser?.id;
+    const isNowLoggedIn =
+      authUser !== null && authUser !== undefined && authUser?.id;
     if (wasLoggedOut && isNowLoggedIn) {
       const alertKey = `discountAlertShown_${authUser.id}`;
-      if (localStorage.getItem(alertKey) !== 'true' && !discountLoading && discountProducts.length > 0) {
+      if (
+        localStorage.getItem(alertKey) !== "true" &&
+        !discountLoading &&
+        discountProducts.length > 0
+      ) {
         const maxDiscount = discountProducts[0];
         if (maxDiscount) {
           setMaxDiscountProduct(maxDiscount);
-          setTimeout(() => { setShowDiscountAlert(true); localStorage.setItem(alertKey, 'true'); }, 1200);
+          setTimeout(() => {
+            setShowDiscountAlert(true);
+            localStorage.setItem(alertKey, "true");
+          }, 1200);
         }
       }
     }
     setPrevAuthUser(authUser);
-  }, [authUser, prevAuthUser, discountLoading, discountProducts, isInitialMount]);
+  }, [
+    authUser,
+    prevAuthUser,
+    discountLoading,
+    discountProducts,
+    isInitialMount,
+  ]);
 
   useEffect(() => {
     if (isInitialMount || !authUser?.id || showDiscountAlert) return;
     const alertKey = `discountAlertShown_${authUser.id}`;
-    if (localStorage.getItem(alertKey) !== 'true' && !discountLoading && discountProducts.length > 0) {
+    if (
+      localStorage.getItem(alertKey) !== "true" &&
+      !discountLoading &&
+      discountProducts.length > 0
+    ) {
       if (prevAuthUser === null || prevAuthUser === undefined) {
         const maxDiscount = discountProducts[0];
         if (maxDiscount) {
           setMaxDiscountProduct(maxDiscount);
-          setTimeout(() => { setShowDiscountAlert(true); localStorage.setItem(alertKey, 'true'); }, 1200);
+          setTimeout(() => {
+            setShowDiscountAlert(true);
+            localStorage.setItem(alertKey, "true");
+          }, 1200);
         }
       }
     }
-  }, [discountLoading, discountProducts, authUser, prevAuthUser, showDiscountAlert, isInitialMount]);
+  }, [
+    discountLoading,
+    discountProducts,
+    authUser,
+    prevAuthUser,
+    showDiscountAlert,
+    isInitialMount,
+  ]);
 
   useEffect(() => {
     if (isInitialMount) return;
@@ -90,23 +119,17 @@ const UserDashboard = ({ user, stats, loading }) => {
     }
   }, [authUser, prevAuthUser, isInitialMount]);
 
-  useEffect(() => {
-    if (!isAutoSliding) return;
-    const interval = setInterval(() => setCurrentBannerSlide((prev) => (prev + 1) % bannerImages.length), 4000);
-    return () => clearInterval(interval);
-  }, [isAutoSliding, bannerImages.length]);
-
   const loadCategories = async () => {
     try {
       setCategoriesLoading(true);
-      const response = await axios.get('/api/category');
-      console.log('📦 Categories response:', response.data);
+      const response = await axios.get("/api/category");
+      console.log("📦 Categories response:", response.data);
       setCategories(response.data.categories || []);
     } catch (error) {
-      console.error('❌ Error loading categories:', error);
+      console.error("❌ Error loading categories:", error);
       if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
       }
     } finally {
       setCategoriesLoading(false);
@@ -116,17 +139,19 @@ const UserDashboard = ({ user, stats, loading }) => {
   const loadFeaturedProducts = async () => {
     try {
       setProductsLoading(true);
-      const response = await axios.get('/api/products/100');
-      console.log('📦 Featured products response:', response.data);
+      const response = await axios.get("/api/products/100");
+      console.log("📦 Featured products response:", response.data);
       const products = response.data.products || [];
-      const limitedStock = products.filter(p => p.quantity > 0 && p.quantity < 20).sort((a, b) => a.quantity - b.quantity);
+      const limitedStock = products
+        .filter((p) => p.quantity > 0 && p.quantity < 20)
+        .sort((a, b) => a.quantity - b.quantity);
       setFeaturedProducts(limitedStock);
-      console.log('📦 Limited stock products:', limitedStock.length);
+      console.log("📦 Limited stock products:", limitedStock.length);
     } catch (error) {
-      console.error('❌ Error loading featured products:', error);
+      console.error("❌ Error loading featured products:", error);
       if (error.response) {
-        console.error('Response status:', error.response.status);
-        console.error('Response data:', error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
       }
     } finally {
       setProductsLoading(false);
@@ -136,13 +161,15 @@ const UserDashboard = ({ user, stats, loading }) => {
   const loadDiscountProducts = async () => {
     try {
       setDiscountLoading(true);
-      const response = await axios.get('/api/products/100');
+      const response = await axios.get("/api/products/100");
       const products = response.data.products || [];
-      const onDiscount = products.filter(p => isProductOnDiscount(p) && p.quantity > 0).sort((a, b) => getDiscountPercentage(b) - getDiscountPercentage(a));
+      const onDiscount = products
+        .filter((p) => isProductOnDiscount(p) && p.quantity > 0)
+        .sort((a, b) => getDiscountPercentage(b) - getDiscountPercentage(a));
       setDiscountProducts(onDiscount);
     } catch (error) {
-      console.error('Error loading discount products:', error);
-      setApiError('ไม่สามารถโหลดสินค้าได้ กรุณาลองใหม่อีกครั้ง');
+      console.error("Error loading discount products:", error);
+      setApiError("ไม่สามารถโหลดสินค้าได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setDiscountLoading(false);
     }
@@ -152,29 +179,41 @@ const UserDashboard = ({ user, stats, loading }) => {
     try {
       setAllProductsLoading(true);
       setApiError(null);
-      const response = await axios.get('/api/products/50');
-      console.log('📦 All products response:', response.data);
+      const response = await axios.get("/api/products/50");
+      console.log("📦 All products response:", response.data);
       const products = response.data.products || [];
       // แสดงเฉพาะสินค้าที่มีสต็อก
-      const availableProducts = products.filter(p => p.quantity > 0);
+      const availableProducts = products.filter((p) => p.quantity > 0);
       setAllProducts(availableProducts);
-      console.log('📦 Available products:', availableProducts.length);
+      console.log("📦 Available products:", availableProducts.length);
     } catch (error) {
-      console.error('❌ Error loading all products:', error);
-      setApiError('ไม่สามารถโหลดสินค้าได้ กรุณาตรวจสอบการเชื่อมต่อ');
-      toast.error('เกิดข้อผิดพลาดในการโหลดสินค้า');
+      console.error("❌ Error loading all products:", error);
+      setApiError("ไม่สามารถโหลดสินค้าได้ กรุณาตรวจสอบการเชื่อมต่อ");
+      toast.error("เกิดข้อผิดพลาดในการโหลดสินค้า");
     } finally {
       setAllProductsLoading(false);
     }
   };
 
   const handleAddToCart = async (product) => {
-    if (!authUser) { setSelectedProductTitle(product.title); setShowLoginPopup(true); return; }
-    if (product.quantity < 1) { setOutOfStockProductTitle(product.title); setShowOutOfStockAlert(true); return; }
-    await addToCart(product.id, 1, getCurrentPrice(product), { id: product.id, title: product.title, images: product.images || [] });
+    if (!authUser) {
+      setSelectedProductTitle(product.title);
+      setShowLoginPopup(true);
+      return;
+    }
+    if (product.quantity < 1) {
+      setOutOfStockProductTitle(product.title);
+      setShowOutOfStockAlert(true);
+      return;
+    }
+    await addToCart(product.id, 1, getCurrentPrice(product), {
+      id: product.id,
+      title: product.title,
+      images: product.images || [],
+    });
   };
 
-  const goToSlide = (index) => { setIsAutoSliding(false); setCurrentBannerSlide(index); setTimeout(() => setIsAutoSliding(true), 5000); };
+
 
   if (loading && user) {
     return (
@@ -195,28 +234,59 @@ const UserDashboard = ({ user, stats, loading }) => {
         <Link to={`/product/${product.id}`} className="block">
           <div className="aspect-square bg-gray-50 relative overflow-hidden">
             {product.images?.[0] ? (
-              <img src={product.images[0].url || product.images[0].secure_url} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+              <img
+                src={product.images[0].url || product.images[0].secure_url}
+                alt={product.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
             ) : (
-              <div className="w-full h-full flex items-center justify-center"><i className="fas fa-image text-gray-200 text-3xl"></i></div>
+              <div className="w-full h-full flex items-center justify-center">
+                <i className="fas fa-image text-gray-200 text-3xl"></i>
+              </div>
             )}
-            {hasDiscount && <span className="absolute top-0 left-0 px-1.5 py-0.5 bg-[#ee4d2d] text-white text-[10px] font-bold">-{discountPercent}%</span>}
-            {isOutOfStock && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><span className="text-white text-xs font-medium">หมดสต็อก</span></div>}
+            {hasDiscount && (
+              <span className="absolute top-0 left-0 px-1.5 py-0.5 bg-[#ee4d2d] text-white text-[10px] font-bold">
+                -{discountPercent}%
+              </span>
+            )}
+            {isOutOfStock && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <span className="text-white text-xs font-medium">หมดสต็อก</span>
+              </div>
+            )}
             {!isOutOfStock && product.quantity < 20 && (
-              <span className="absolute top-0 right-0 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold">เหลือ {product.quantity}</span>
+              <span className="absolute top-0 right-0 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold">
+                เหลือ {product.quantity}
+              </span>
             )}
           </div>
           <div className="p-2">
-            <h3 className="text-xs text-gray-800 line-clamp-2 mb-1 min-h-[2rem] group-hover:text-[#ee4d2d]">{product.title}</h3>
+            <h3 className="text-xs text-gray-800 line-clamp-2 mb-1 min-h-[2rem] group-hover:text-[#ee4d2d]">
+              {product.title}
+            </h3>
             <div className="flex items-baseline gap-1">
-              <span className="text-sm font-bold text-[#ee4d2d]">฿{getCurrentPrice(product).toLocaleString()}</span>
-              {hasDiscount && <span className="text-[10px] text-gray-400 line-through">฿{product.price.toLocaleString()}</span>}
+              <span className="text-sm font-bold text-[#ee4d2d]">
+                ฿{getCurrentPrice(product).toLocaleString()}
+              </span>
+              {hasDiscount && (
+                <span className="text-[10px] text-gray-400 line-through">
+                  ฿{product.price.toLocaleString()}
+                </span>
+              )}
             </div>
             {isFlashSale && soldCount > 0 && (
               <div className="mt-1">
                 <div className="h-1 bg-[#ffeee8] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#ee4d2d] rounded-full" style={{ width: `${Math.min((soldCount / (soldCount + product.quantity)) * 100, 100)}%` }}></div>
+                  <div
+                    className="h-full bg-[#ee4d2d] rounded-full"
+                    style={{
+                      width: `${Math.min((soldCount / (soldCount + product.quantity)) * 100, 100)}%`,
+                    }}
+                  ></div>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-0.5">ขายแล้ว {soldCount} ชิ้น</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  ขายแล้ว {soldCount} ชิ้น
+                </p>
               </div>
             )}
           </div>
@@ -230,36 +300,48 @@ const UserDashboard = ({ user, stats, loading }) => {
       {/* Hero Banner - Shopee Style */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-1">
-          {/* Main Banner Carousel */}
-          <div className="lg:col-span-3 relative h-64 sm:h-72 overflow-hidden shadow-lg group">
-            {bannerImages.map((banner, i) => (
-              <div key={i} className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${i === currentBannerSlide ? 'opacity-100' : 'opacity-0'}`}>
-                <img src={banner.url} alt={banner.title} className="w-full h-full object-cover" onError={(e) => e.target.src = `https://picsum.photos/seed/shop${i}/1200/400`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
-                <div className="absolute bottom-4 left-4">
-                  <h3 className="text-white text-xl font-bold drop-shadow-lg">{banner.title}</h3>
-                </div>
-              </div>
-            ))}
-            <button onClick={() => goToSlide((currentBannerSlide - 1 + bannerImages.length) % bannerImages.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white text-gray-800 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><i className="fas fa-chevron-left"></i></button>
-            <button onClick={() => goToSlide((currentBannerSlide + 1) % bannerImages.length)} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white text-gray-800 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><i className="fas fa-chevron-right"></i></button>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-              {bannerImages.map((_, i) => (
-                <button key={i} onClick={() => goToSlide(i)} className={`h-2 rounded-full transition-all ${i === currentBannerSlide ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/75'}`}></button>
-              ))}
-            </div>
+          {/* Main Banner - Single Image */}
+          <div className="lg:col-span-3 relative h-72 sm:h-80 overflow-hidden shadow-lg">
+            <img
+              src="/unnamed8888.jpg"
+              alt="ช้อปปิ้งออนไลน์"
+              className="w-full h-full object-cover"
+              onError={(e) =>
+                (e.target.src = "https://picsum.photos/seed/shop1/1200/400")
+              }
+            />
           </div>
           {/* Side Promo Banners */}
-          <div className="hidden lg:flex flex-col gap-1 h-64 sm:h-72">
-            <Link to="/products" className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo">
+          <div className="hidden lg:flex flex-col gap-1 h-72 sm:h-80">
+            <Link
+              to="/it-products"
+              className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo"
+            >
               <div className="relative w-full h-full">
-                <img src="https://i.pinimg.com/736x/69/6c/41/696c41422547731a973163a9bf0931b5.jpg" alt="promo-1" className="w-full h-full object-cover group-hover/promo:scale-105 transition-transform duration-300" onError={(e) => e.target.src = 'https://picsum.photos/seed/promo1/400/200'} />
+                <img
+                  src="/unnamed.jpg"
+                  alt="IT Computer Equipment"
+                  className="w-full h-full object-cover group-hover/promo:scale-105 transition-transform duration-300"
+                  onError={(e) =>
+                    (e.target.src = "https://picsum.photos/seed/promo1/400/200")
+                  }
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover/promo:opacity-100 transition-opacity duration-300"></div>
               </div>
             </Link>
-            <Link to="/discount-products" className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo">
+            <Link
+              to="/discount-products"
+              className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo"
+            >
               <div className="relative w-full h-full">
-                <img src="https://thaipublica.org/wp-content/uploads/2017/03/thaipublica-cover_14-03-2017_web.jpg" alt="promo-2" className="w-full h-full object-cover group-hover/promo:scale-105 transition-transform duration-300" onError={(e) => e.target.src = 'https://picsum.photos/seed/promo2/400/200'} />
+                <img
+                  src="/unnamed555.jpg"
+                  alt="promo-2"
+                  className="w-full h-full object-cover group-hover/promo:scale-105 transition-transform duration-300"
+                  onError={(e) =>
+                    (e.target.src = "https://picsum.photos/seed/promo2/400/200")
+                  }
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover/promo:opacity-100 transition-opacity duration-300"></div>
               </div>
             </Link>
@@ -272,17 +354,36 @@ const UserDashboard = ({ user, stats, loading }) => {
         <div className="bg-white rounded-sm p-3 shadow-md">
           <div className="flex items-center gap-4 overflow-x-auto justify-center">
             {[
-              { icon: "fa-bolt", label: "Flash Sale", color: "#ee4d2d", link: "/discount-products" },
-              { icon: "fa-truck", label: "ส่งฟรี", color: "#26aa99", link: "/products" },
-              { icon: "fa-store", label: "ร้านค้า", color: "#ee4d2d", link: "/stores" },
-              { icon: "fa-tag", label: "โค้ดส่วนลด", color: "#f69113", link: "/products" },
-              { icon: "fa-mobile-alt", label: "เติมเงิน", color: "#0099ff", link: "/products" },
+              {
+                icon: "fa-bolt",
+                label: "Flash Sale",
+                color: "#ee4d2d",
+                link: "/discount-products",
+              },
+              {
+                icon: "fa-store",
+                label: "ร้านค้า",
+                color: "#ee4d2d",
+                link: "/stores",
+              },
             ].map((item) => (
-              <Link key={item.label} to={item.link} className="flex flex-col items-center gap-1 min-w-[60px] group">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${item.color}15` }}>
-                  <i className={`fas ${item.icon}`} style={{ color: item.color }}></i>
+              <Link
+                key={item.label}
+                to={item.link}
+                className="flex flex-col items-center gap-1 min-w-[60px] group"
+              >
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: `${item.color}15` }}
+                >
+                  <i
+                    className={`fas ${item.icon}`}
+                    style={{ color: item.color }}
+                  ></i>
                 </div>
-                <span className="text-[10px] text-gray-600 group-hover:text-[#ee4d2d] whitespace-nowrap">{item.label}</span>
+                <span className="text-[10px] text-gray-600 group-hover:text-[#ee4d2d] whitespace-nowrap">
+                  {item.label}
+                </span>
               </Link>
             ))}
           </div>
@@ -290,40 +391,54 @@ const UserDashboard = ({ user, stats, loading }) => {
       </div>
 
       {/* Categories */}
-      <div className="max-w-[1200px] mx-auto px-4 py-2">
-        <div className="bg-white rounded-sm shadow-md">
-          <div className="p-3 border-b border-gray-100">
-            <h2 className="font-medium text-gray-900">หมวดหมู่</h2>
-          </div>
-          <div className="p-3">
-            {categoriesLoading ? (
-              <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
-                {[...Array(10)].map((_, i) => (
-                  <div key={i} className="flex flex-col items-center animate-pulse">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full mb-1"></div>
-                    <div className="w-10 h-2 bg-gray-200 rounded"></div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
-                {categories.slice(0, 10).map((cat) => (
-                  <Link key={cat.id} to={`/products?category=${cat.id}`} className="flex flex-col items-center group">
-                    <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ee4d2d] overflow-hidden">
-                      {cat.image ? (
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <i className="fas fa-tag text-[#ee4d2d]"></i>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-gray-600 text-center line-clamp-2 mt-1 group-hover:text-[#ee4d2d]">{cat.name}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+<div className="max-w-[1200px] mx-auto px-4 py-2">
+  <div className="bg-white rounded-sm shadow-md">
+    <div className="p-3 border-b border-gray-100">
+      <h2 className="font-medium text-gray-900">หมวดหมู่</h2>
+    </div>
+    <div className="p-4"> {/* เพิ่ม padding รอบนอกเล็กน้อย */}
+      {categoriesLoading ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex flex-col items-center animate-pulse">
+              {/* ปรับ skeleton ให้ใหญ่ตามรูปจริง */}
+              <div className="w-16 h-16 bg-gray-200 rounded-full mb-2"></div>
+              <div className="w-16 h-3 bg-gray-200 rounded"></div>
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6">
+          {categories.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/products?category=${cat.id}`}
+              className="flex flex-col items-center group"
+            >
+              {/* ปรับขนาดวงกลมจาก w-12 h-12 เป็น w-16 h-16 (หรือ w-20 h-20 ถ้าต้องการใหญ่มาก) */}
+              <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ee4d2d] overflow-hidden transition-all duration-200 shadow-sm">
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
+                  />
+                ) : (
+                  <i className="fas fa-tag text-[#ee4d2d] text-xl"></i>
+                )}
+              </div>
+              
+              {/* ปรับ font size จาก text-[10px] เป็น text-sm และเพิ่ม font-medium */}
+              <span className="text-sm font-medium text-gray-700 text-center line-clamp-2 mt-2 group-hover:text-[#ee4d2d] transition-colors">
+                {cat.name}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
       {/* Flash Sale */}
       {discountProducts.length > 0 && (
@@ -334,14 +449,27 @@ const UserDashboard = ({ user, stats, loading }) => {
                 <i className="fas fa-bolt text-yellow-300 text-lg animate-pulse"></i>
                 <span className="font-bold text-white">FLASH SALE</span>
               </div>
-              <Link to="/discount-products" className="text-white text-sm hover:underline">ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i></Link>
+              <Link
+                to="/discount-products"
+                className="text-white text-sm hover:underline"
+              >
+                ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i>
+              </Link>
             </div>
             <div className="p-3">
               {discountLoading ? (
-                <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div></div>
+                <div className="flex justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {discountProducts.slice(0, 6).map((product) => <ProductCard key={product.id} product={product} isFlashSale />)}
+                  {discountProducts.slice(0, 6).map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      isFlashSale
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -357,15 +485,55 @@ const UserDashboard = ({ user, stats, loading }) => {
               <div className="flex items-center gap-2">
                 <i className="fas fa-fire text-orange-500"></i>
                 <span className="font-medium text-gray-900">สินค้าใกล้หมด</span>
+                <span className="text-xs text-gray-500">({featuredProducts.length} รายการ)</span>
               </div>
-              <Link to="/products" className="text-[#ee4d2d] text-sm hover:underline">ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i></Link>
+              <div className="flex items-center gap-3">
+                {/* Navigation Buttons */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setLowStockPage(prev => Math.max(0, prev - 1))}
+                    disabled={lowStockPage === 0}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
+                      lowStockPage === 0
+                        ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                        : 'border-gray-300 text-gray-600 hover:border-[#ee4d2d] hover:text-[#ee4d2d] hover:bg-[#fef0ed]'
+                    }`}
+                  >
+                    <i className="fas fa-chevron-left text-xs"></i>
+                  </button>
+                  <span className="text-xs text-gray-500 min-w-[50px] text-center">
+                    {lowStockPage + 1} / {Math.ceil(featuredProducts.length / itemsPerPage)}
+                  </span>
+                  <button
+                    onClick={() => setLowStockPage(prev => Math.min(Math.ceil(featuredProducts.length / itemsPerPage) - 1, prev + 1))}
+                    disabled={lowStockPage >= Math.ceil(featuredProducts.length / itemsPerPage) - 1}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
+                      lowStockPage >= Math.ceil(featuredProducts.length / itemsPerPage) - 1
+                        ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                        : 'border-gray-300 text-gray-600 hover:border-[#ee4d2d] hover:text-[#ee4d2d] hover:bg-[#fef0ed]'
+                    }`}
+                  >
+                    <i className="fas fa-chevron-right text-xs"></i>
+                  </button>
+                </div>
+                <Link
+                  to="/products"
+                  className="text-[#ee4d2d] text-sm hover:underline"
+                >
+                  ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i>
+                </Link>
+              </div>
             </div>
             <div className="p-3">
               {productsLoading ? (
-                <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div></div>
+                <div className="flex justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {featuredProducts.slice(0, 6).map((product) => <ProductCard key={product.id} product={product} />)}
+                  {featuredProducts.slice(lowStockPage * itemsPerPage, (lowStockPage + 1) * itemsPerPage).map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
                 </div>
               )}
             </div>
@@ -381,7 +549,12 @@ const UserDashboard = ({ user, stats, loading }) => {
               <i className="fas fa-box text-[#ee4d2d]"></i>
               <span className="font-medium text-gray-900">สินค้าทั้งหมด</span>
             </div>
-            <Link to="/products" className="text-[#ee4d2d] text-sm hover:underline">ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i></Link>
+            <Link
+              to="/products"
+              className="text-[#ee4d2d] text-sm hover:underline"
+            >
+              ดูทั้งหมด <i className="fas fa-chevron-right text-xs"></i>
+            </Link>
           </div>
           <div className="p-3">
             {apiError ? (
@@ -390,7 +563,7 @@ const UserDashboard = ({ user, stats, loading }) => {
                   <i className="fas fa-exclamation-circle text-2xl mb-2"></i>
                   <p className="text-sm">{apiError}</p>
                 </div>
-                <button 
+                <button
                   onClick={loadAllProducts}
                   className="mt-4 px-4 py-2 bg-[#ee4d2d] text-white rounded-sm hover:bg-[#d43a1a] transition-colors text-sm"
                 >
@@ -398,10 +571,14 @@ const UserDashboard = ({ user, stats, loading }) => {
                 </button>
               </div>
             ) : allProductsLoading ? (
-              <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div></div>
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-orange-100 border-t-[#ee4d2d] rounded-full animate-spin"></div>
+              </div>
             ) : allProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {allProducts.slice(0, 12).map((product) => <ProductCard key={product.id} product={product} />)}
+                {allProducts.slice(0, 12).map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -416,17 +593,33 @@ const UserDashboard = ({ user, stats, loading }) => {
       {/* CTA */}
       <div className="max-w-[1200px] mx-auto px-4 py-4">
         <div className="text-center">
-          <Link to="/products" className="inline-flex shadow-md items-center gap-2 px-8 py-2 border border-[#ee4d2d] text-[#ee4d2d] rounded-sm text-sm font-medium hover:bg-[#fef0ed] transition-colors">
+          <Link
+            to="/products"
+            className="inline-flex shadow-md items-center gap-2 px-8 py-2 border border-[#ee4d2d] text-[#ee4d2d] rounded-sm text-sm font-medium hover:bg-[#fef0ed] transition-colors"
+          >
             ดูสินค้าเพิ่มเติม <i className="fas fa-chevron-down text-xs"></i>
           </Link>
         </div>
       </div>
 
       {/* Popups */}
-      <LoginPopup isOpen={showLoginPopup} onClose={() => setShowLoginPopup(false)} productTitle={selectedProductTitle} />
-      <OutOfStockAlert isVisible={showOutOfStockAlert} onClose={() => setShowOutOfStockAlert(false)} productTitle={outOfStockProductTitle} />
+      <LoginPopup
+        isOpen={showLoginPopup}
+        onClose={() => setShowLoginPopup(false)}
+        productTitle={selectedProductTitle}
+      />
+      <OutOfStockAlert
+        isVisible={showOutOfStockAlert}
+        onClose={() => setShowOutOfStockAlert(false)}
+        productTitle={outOfStockProductTitle}
+      />
       {maxDiscountProduct && showDiscountAlert && (
-        <DiscountAlert isVisible={showDiscountAlert} onClose={() => setShowDiscountAlert(false)} maxDiscount={getDiscountPercentage(maxDiscountProduct)} product={maxDiscountProduct} />
+        <DiscountAlert
+          isVisible={showDiscountAlert}
+          onClose={() => setShowDiscountAlert(false)}
+          maxDiscount={getDiscountPercentage(maxDiscountProduct)}
+          product={maxDiscountProduct}
+        />
       )}
     </div>
   );
