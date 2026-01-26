@@ -301,9 +301,9 @@ const UserDashboard = ({ user, stats, loading }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-1">
           {/* Main Banner - Single Image */}
-          <div className="lg:col-span-3 relative h-72 sm:h-80 overflow-hidden shadow-lg">
+          <div className="lg:col-span-3 relative h-52 sm:h-60 overflow-hidden shadow-lg">
             <img
-              src="/unnamed8888.jpg"
+              src="/000000.jpg"
               alt="ช้อปปิ้งออนไลน์"
               className="w-full h-full object-cover"
               onError={(e) =>
@@ -312,7 +312,7 @@ const UserDashboard = ({ user, stats, loading }) => {
             />
           </div>
           {/* Side Promo Banners */}
-          <div className="hidden lg:flex flex-col gap-1 h-72 sm:h-80">
+          <div className="hidden lg:flex flex-col gap-1 h-52 sm:h-60">
             <Link
               to="/it-products"
               className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo"

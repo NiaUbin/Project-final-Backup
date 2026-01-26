@@ -2,7 +2,7 @@ const prisma = require('../config/prisma');
 
 exports.createStore = async (req, res) => {
   try {
-    const { name, description, logo } = req.body;
+    const { name, description, logo, idCard, address } = req.body;
 
     // Check existing store for this user
     const existing = await prisma.store.findFirst({ where: { ownerId: req.user.id } });
@@ -11,7 +11,7 @@ exports.createStore = async (req, res) => {
     }
 
     const store = await prisma.store.create({
-      data: { name, description, logo, ownerId: req.user.id }
+      data: { name, description, logo, idCard, address, ownerId: req.user.id }
     });
 
     // Upgrade role to seller if not already
@@ -41,12 +41,12 @@ exports.getMyStore = async (req, res) => {
 
 exports.updateMyStore = async (req, res) => {
   try {
-    const { name, description, logo } = req.body;
+    const { name, description, logo, idCard, address } = req.body;
     const store = await prisma.store.findFirst({ where: { ownerId: req.user.id } });
     if (!store) return res.status(404).json({ message: 'ยังไม่มีร้านค้า' });
     const updated = await prisma.store.update({
       where: { id: store.id },
-      data: { name, description, logo }
+      data: { name, description, logo, idCard, address }
     });
     res.json({ message: 'อัปเดตร้านค้าสำเร็จ', store: updated });
   } catch (error) {
