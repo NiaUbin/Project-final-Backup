@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import LoginPopup from '../Common/LoginPopup';
 import OutOfStockAlert from '../Common/OutOfStockAlert';
 import ReviewList from '../Reviews/ReviewList';
-import { isProductOnDiscount, getCurrentPrice, getDiscountPercentage, getRemainingDiscountTime } from '../../utils/productDiscount';
+import { isProductOnDiscount, getCurrentPrice, getDiscountedPrice, getDiscountPercentage, getRemainingDiscountTime } from '../../utils/productDiscount';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -256,18 +256,30 @@ const ProductDetail = () => {
     return [];
   }, [product]);
 
-  // Calculate total price based on selected variant options
+  // Raw total from variant option prices only (no discount) - for showing original when on discount
+  const getVariantRawTotalPrice = () => {
+    if (!product || productVariants.length === 0) return 0;
+    let sum = 0;
+    productVariants.forEach(variant => {
+      const selectedOptionName = selectedVariants[variant.name];
+      if (selectedOptionName && variant.options) {
+        const opt = variant.options.find(o => (typeof o === 'object' ? o.name : o) === selectedOptionName);
+        if (opt && typeof opt === 'object' && opt.price > 0) sum += opt.price;
+      }
+    });
+    return sum;
+  };
+
+  // Calculate total price based on selected variant options (applies product discount when on sale)
   const getVariantTotalPrice = () => {
     if (!product) return 0;
-    
-    // Start with base price or discount price
+
     let basePrice = getCurrentPrice(product);
-    
-    // Check if any variant has priced options
+
     if (productVariants.length > 0) {
       let hasVariantPrice = false;
       let variantPrice = 0;
-      
+
       productVariants.forEach(variant => {
         const selectedOptionName = selectedVariants[variant.name];
         if (selectedOptionName && variant.options) {
@@ -275,20 +287,19 @@ const ProductDetail = () => {
             const optName = typeof opt === 'object' ? opt.name : opt;
             return optName === selectedOptionName;
           });
-          
+
           if (selectedOption && typeof selectedOption === 'object' && selectedOption.price > 0) {
             hasVariantPrice = true;
             variantPrice += selectedOption.price;
           }
         }
       });
-      
-      // If we have variant prices, use them; otherwise use base price
+
       if (hasVariantPrice) {
-        return variantPrice;
+        return getDiscountedPrice(product, variantPrice);
       }
     }
-    
+
     return basePrice;
   };
 
@@ -493,14 +504,33 @@ const ProductDetail = () => {
                   );
                   
                   if (hasVariantPricing) {
+                    const rawVariant = getVariantRawTotalPrice();
                     return (
                       <>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs text-gray-500">ราคาตามตัวเลือก</span>
                         </div>
-                        <span className="text-2xl sm:text-3xl font-medium text-[#ee4d2d]">
-                          ฿{variantPrice.toLocaleString()}
-                        </span>
+                        {onDiscount && rawVariant > 0 && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm text-gray-500 line-through">฿{rawVariant.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="text-2xl sm:text-3xl font-medium text-[#ee4d2d]">
+                            ฿{variantPrice.toLocaleString()}
+                          </span>
+                          {onDiscount && (
+                            <span className="px-1.5 py-0.5 bg-[#ee4d2d] text-white text-xs font-bold rounded-sm">
+                              -{discountPercent}% ลด
+                            </span>
+                          )}
+                        </div>
+                        {onDiscount && remainingTime && (
+                          <div className="mt-2 flex items-center gap-2 text-sm">
+                            <i className="fas fa-clock text-[#ee4d2d]"></i>
+                            <span className="text-[#ee4d2d] font-medium">สิ้นสุดใน {remainingTime}</span>
+                          </div>
+                        )}
                         {Object.keys(selectedVariants).length > 0 && (
                           <div className="mt-2 text-xs text-gray-500">
                             {Object.entries(selectedVariants).map(([name, value]) => (
@@ -590,7 +620,14 @@ const ProductDetail = () => {
                               <span>{optionName}</span>
                               {optionPrice !== null && optionPrice > 0 && (
                                 <span className={`text-xs mt-0.5 ${isSelected ? 'text-[#ee4d2d]' : 'text-gray-500'}`}>
-                                  ฿{optionPrice.toLocaleString()}
+                                  {onDiscount ? (
+                                    <>
+                                      <span className="line-through text-gray-400 mr-1">฿{optionPrice.toLocaleString()}</span>
+                                      <span>฿{getDiscountedPrice(product, optionPrice).toLocaleString()}</span>
+                                    </>
+                                  ) : (
+                                    <>฿{optionPrice.toLocaleString()}</>
+                                  )}
                                 </span>
                               )}
                             </button>

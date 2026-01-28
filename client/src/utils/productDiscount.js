@@ -39,6 +39,27 @@ export const getDiscountPercentage = (product) => {
 };
 
 /**
+ * Get discount multiplier (0-1) when product is on discount. Multiply any price by this to get discounted value.
+ * @param {Object} product - Product object
+ * @returns {number} - product.discountPrice/product.price when on discount, else 1
+ */
+export const getDiscountMultiplier = (product) => {
+  if (!product || !isProductOnDiscount(product) || !product.price || product.price <= 0) return 1;
+  return product.discountPrice / product.price;
+};
+
+/**
+ * Apply product discount to a given price (for variants, options, etc.)
+ * @param {Object} product - Product object
+ * @param {number} originalPrice - Original price to discount
+ * @returns {number} - Discounted price when on discount, else originalPrice
+ */
+export const getDiscountedPrice = (product, originalPrice) => {
+  if (originalPrice == null || isNaN(originalPrice)) return 0;
+  return originalPrice * getDiscountMultiplier(product);
+};
+
+/**
  * Get remaining discount time in a human-readable format
  * @param {Object} product - Product object
  * @returns {string|null} - Remaining time string or null if not on discount
