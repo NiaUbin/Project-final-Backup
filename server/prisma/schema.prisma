@@ -59,6 +59,7 @@ model Store {
   logo        String?
   idCard      String?
   address     String?
+  status      String    @default("pending")
   ownerId     Int
   owner       User      @relation(fields: [ownerId], references: [id])
   products    Product[]

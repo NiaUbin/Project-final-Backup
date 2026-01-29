@@ -8,10 +8,12 @@ import PaymentApproval from './PaymentApproval';
 import OrderManagement from './OrderManagement';
 import Analytics from './Analytics';
 import ErrorBoundary from './ErrorBoundary';
+import StoreApproval from './StoreApproval';
 
 // Category Management Component
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -676,6 +678,13 @@ const AdminPanel = () => {
       color: 'bg-blue-500'
     },
     { 
+      id: 'store_approval', 
+      name: 'อนุมัติร้านค้า', 
+      icon: 'fas fa-store-alt',
+      description: 'ตรวจสอบและอนุมัติคำขอเปิดร้านค้าใหม่',
+      color: 'bg-orange-600'
+    },
+    { 
       id: 'products', 
       name: 'จัดการสินค้า', 
       icon: 'fas fa-box',
@@ -936,6 +945,11 @@ const AdminPanel = () => {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Store Approval Tab */}
+            {activeTab === 'store_approval' && (
+              <StoreApproval />
             )}
 
             {/* Products Tab */}

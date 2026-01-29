@@ -7,19 +7,27 @@ exports.createStore = async (req, res) => {
     // Check existing store for this user
     const existing = await prisma.store.findFirst({ where: { ownerId: req.user.id } });
     if (existing) {
+      if (existing.status === 'pending') {
+         return res.status(400).json({ message: 'ร้านค้าของคุณอยู่ระหว่างการตรวจสอบ', store: existing });
+      }
       return res.status(400).json({ message: 'คุณมีร้านค้าแล้ว', store: existing });
     }
 
     const store = await prisma.store.create({
-      data: { name, description, logo, idCard, address, ownerId: req.user.id }
+      data: { 
+        name, 
+        description, 
+        logo, 
+        idCard, 
+        address, 
+        ownerId: req.user.id,
+        status: 'pending' // Force pending status
+      }
     });
 
-    // Upgrade role to seller if not already
-    if (req.user.role !== 'seller') {
-      await prisma.user.update({ where: { id: req.user.id }, data: { role: 'seller' } });
-    }
+    // Note: User role is NOT upgraded here. Admin must approve first.
 
-    res.status(201).json({ message: 'สร้างร้านค้าสำเร็จ', store });
+    res.status(201).json({ message: 'สร้างคำขอเปิดร้านค้าสำเร็จ รอการอนุมัติจาก Admin', store });
   } catch (error) {
     console.error('Create store error:', error);
     res.status(500).json({ message: 'เกิดข้อผิดพลาดในการสร้างร้านค้า' });
@@ -58,6 +66,7 @@ exports.updateMyStore = async (req, res) => {
 exports.listStores = async (_req, res) => {
   try {
     const stores = await prisma.store.findMany({
+      where: { status: 'approved' },
       orderBy: { createdAt: 'desc' },
       include: { products: { take: 4, include: { images: true } } }
     });
@@ -85,6 +94,7 @@ exports.getStore = async (req, res) => {
         description: true,
         logo: true,
         ownerId: true,
+        status: true,
         createdAt: true,
         updatedAt: true,
         products: { 
@@ -99,16 +109,209 @@ exports.getStore = async (req, res) => {
     if (!store) {
       return res.status(404).json({ message: 'ไม่พบร้านค้า' });
     }
+
+    if (store.status !== 'approved') {
+       // Allow owner to see their own pending store? Maybe check req.user? 
+       // For public view, deny.
+       // But this is usually public endpoint. Let's assume public user shouldn't see unapproved stores.
+       // However, we don't have user info in public getStore easily without middleware check.
+       // For now, let's just return it but frontend might hide it or show "closed".
+       // Or better:
+       if (store.status !== 'approved') {
+         return res.status(404).json({ message: 'ร้านค้านี้ยังไม่เปิดให้บริการ' });
+       }
+    }
     
     res.json({ store });
   } catch (error) {
     console.error('Get store error:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       message: 'เกิดข้อผิดพลาดในการดึงข้อมูลร้านค้า',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+
+// Admin Functions
+exports.listPendingStores = async (req, res) => {
+  try {
+    const stores = await prisma.store.findMany({
+      where: { status: 'pending' },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ stores });
+  } catch (error) {
+    console.error('List pending stores error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลร้านค้าที่รออนุมัติ' });
+  }
+};
+
+exports.approveStore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const store = await prisma.store.findUnique({ where: { id: parseInt(id) } });
+    
+    if (!store) return res.status(404).json({ message: 'ไม่พบร้านค้า' });
+    
+    const updatedStore = await prisma.store.update({
+      where: { id: parseInt(id) },
+      data: { status: 'approved' }
+    });
+    
+    // Update Owner Role to 'seller'
+    await prisma.user.update({
+      where: { id: store.ownerId },
+      data: { role: 'seller' }
+    });
+
+    res.json({ message: 'อนุมัติร้านค้าสำเร็จ', store: updatedStore });
+  } catch (error) {
+    console.error('Approve store error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอนุมัติร้านค้า' });
+  }
+};
+
+exports.rejectStore = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // We might want to just delete it or set status 'rejected'
+    // Let's set status rejected
+    const store = await prisma.store.update({
+      where: { id: parseInt(id) },
+      data: { status: 'rejected' }
+    });
+    
+    res.json({ message: 'ปฏิเสธร้านค้าแล้ว', store });
+  } catch (error) {
+    console.error('Reject store error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการปฏิเสธร้านค้า' });
+  }
+};
+
+exports.listAllStoresAdmin = async (req, res) => {
+  try {
+    const { status } = req.query;
+    
+    const stores = await prisma.store.findMany({
+      where: status ? { status } : {},
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            phone: true,
+            enabled: true,
+            role: true
+          }
+        },
+        _count: {
+          select: { products: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ stores });
+  } catch (error) {
+    console.error('List all stores error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลร้านค้าทั้งหมด' });
+  }
+};
+
+exports.updateStoreStatusByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const store = await prisma.store.findUnique({ where: { id: parseInt(id) } });
+    if (!store) return res.status(404).json({ message: 'ไม่พบร้านค้า' });
+    
+    const updatedStore = await prisma.store.update({
+      where: { id: parseInt(id) },
+      data: { status }
+    });
+    
+    // If approving, ensure user is seller
+    if (status === 'approved') {
+      await prisma.user.update({
+        where: { id: store.ownerId },
+        data: { role: 'seller' }
+      });
+    }
+    
+    res.json({ message: 'อัปเดตสถานะร้านค้าสำเร็จ', store: updatedStore });
+  } catch (error) {
+    console.error('Update store status error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการอัปเดตสถานะ' });
+  }
+};
+
+exports.deleteStoreByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const store = await prisma.store.findUnique({ where: { id: parseInt(id) } });
+    if (!store) return res.status(404).json({ message: 'ไม่พบร้านค้า' });
+    
+    // Delete store (Prisma will cascade delete products if configured in schema, otherwise need to delete manually)
+    // Assuming schema has onDelete: Cascade for products relation or we delete manually.
+    // Let's rely on manual deletion for safety if unsure, or just delete store.
+    
+    // In many schemas, products belong to store.
+    await prisma.product.deleteMany({ where: { storeId: parseInt(id) } });
+    
+    await prisma.store.delete({
+      where: { id: parseInt(id) }
+    });
+    
+    // Revert user role to 'user'
+    await prisma.user.update({
+      where: { id: store.ownerId },
+      data: { role: 'user' }
+    });
+
+    res.json({ message: 'ลบร้านค้าเรียบร้อยแล้ว' });
+  } catch (error) {
+    console.error('Delete store error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการลบร้านค้า' });
+  }
+};
+
+exports.updateStoreByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, logo, address, idCard } = req.body;
+    
+    // Check if store exists
+    const store = await prisma.store.findUnique({ where: { id: parseInt(id) } });
+    if (!store) return res.status(404).json({ message: 'ไม่พบร้านค้า' });
+    
+    // Update store
+    const updatedStore = await prisma.store.update({
+      where: { id: parseInt(id) },
+      data: {
+        name,
+        description,
+        logo,
+        address,
+        idCard
+      }
+    });
+
+    res.json({ message: 'แก้ไขข้อมูลร้านค้าสำเร็จ', store: updatedStore });
+  } catch (error) {
+    console.error('Update store by admin error:', error);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการแก้ไขข้อมูลร้านค้า' });
   }
 };
 

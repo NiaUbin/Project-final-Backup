@@ -12,6 +12,7 @@ const SellerOnboarding = () => {
   
   // Steps: 1 = Basic Info, 2 = Identity Verification
   const [currentStep, setCurrentStep] = useState(1);
+  const [storeStatus, setStoreStatus] = useState(null);
   
   const [form, setForm] = useState({ 
     name: '', 
@@ -26,7 +27,11 @@ const SellerOnboarding = () => {
       try {
         const { data } = await axios.get('/api/my/store');
         if (data.store) {
-          navigate('/seller/dashboard');
+          if (data.store.status === 'approved') {
+            navigate('/seller/dashboard');
+          } else {
+            setStoreStatus(data.store.status);
+          }
         }
       } catch {
         // No store yet
@@ -68,16 +73,9 @@ const SellerOnboarding = () => {
     
     try {
       setLoading(true);
-      await axios.post('/api/store', form);
-      toast.success('ยินดีต้อนรับสู่การเป็นผู้ขาย! 🎉');
-      
-      if (user && user.role !== 'seller') {
-        updateUser({ ...user, role: 'seller' });
-      }
-      
-      setTimeout(() => {
-        navigate('/seller/dashboard');
-      }, 1500);
+      const { data } = await axios.post('/api/store', form);
+      toast.success(data.message);
+      setStoreStatus('pending');
     } catch (err) {
       toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาด');
     } finally {
@@ -93,13 +91,68 @@ const SellerOnboarding = () => {
     );
   }
 
+  if (storeStatus === 'pending') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+            <i className="fas fa-clock"></i>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">รอการอนุมัติ</h2>
+          <p className="text-gray-600 mb-6">
+            ข้อมูลร้านค้าของคุณถูกส่งเรียบร้อยแล้ว กรุณารอการตรวจสอบและอนุมัติจากผู้ดูแลระบบ
+            <br className="hidden sm:block" />
+            ซึ่งอาจใช้เวลา 1-2 วันทำการ
+          </p>
+          <button 
+            onClick={() => navigate('/')}
+            className="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          >
+            กลับสู่หน้าหลัก
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (storeStatus === 'rejected') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+            <i className="fas fa-times-circle"></i>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">คำขอถูกปฏิเสธ</h2>
+          <p className="text-gray-600 mb-6">
+            ขออภัย คำขอเปิดร้านค้าของคุณไม่ผ่านการอนุมัติ
+            กรุณาติดต่อผู้ดูแลระบบเพื่อขอข้อมูลเพิ่มเติม
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button 
+              onClick={() => navigate('/')}
+              className="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            >
+              หน้าหลัก
+            </button>
+            <a 
+              href="mailto:support@example.com"
+              className="bg-[#ee4d2d] text-white px-6 py-2 rounded-lg hover:bg-[#d73211] transition-colors font-medium"
+            >
+              ติดต่อเรา
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f5f5f5] pt-32 pb-10 px-4 font-sans">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#ee4d2d] mb-2 flex justify-center items-center gap-2">
-            <i className="fas fa-shopping-bag"></i> Seller Centre
+            <i className="fas fa-shopping-bag"></i> Seller Center
           </h1>
           <p className="text-gray-600">ลงทะเบียนร้านค้า แล้วเริ่มขายสินค้าได้ทันที</p>
         </div>
