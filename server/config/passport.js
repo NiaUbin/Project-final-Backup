@@ -7,9 +7,9 @@ const prisma = require('./prisma');
 passport.use(
   new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID || 'your-google-client-id',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'your-google-client-secret',
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback',
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -24,13 +24,19 @@ passport.use(
         });
 
         if (user) {
-          // User exists, update picture if available
+          // User exists, update picture if available AND not using a custom uploaded picture (Cloudinary)
           if (profile.photos && profile.photos[0]) {
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { picture: profile.photos[0].value },
+            const googlePhotoUrl = profile.photos[0].value;
+            // Don't overwrite if user has a custom picture on Cloudinary
+            const isCloudinaryPicture = user.picture && user.picture.includes('cloudinary');
+            
+            if (!isCloudinaryPicture) {
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { picture: googlePhotoUrl },
             });
-            user.picture = profile.photos[0].value;
+            user.picture = googlePhotoUrl;
+            }
           }
           return done(null, user);
         } else {

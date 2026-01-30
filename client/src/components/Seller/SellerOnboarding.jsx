@@ -146,6 +146,45 @@ const SellerOnboarding = () => {
     );
   }
 
+  // Suspended Account Alert
+  if (storeStatus === 'suspended') {
+    return (
+      <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center p-6 bg-dots-pattern">
+        <div className="max-w-lg w-full bg-white rounded-xl shadow-2xl overflow-hidden relative border border-red-100">
+           {/* Decorative Elements */}
+           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 via-red-400 to-orange-400"></div>
+           <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-50 rounded-full opacity-50 blur-xl"></div>
+           <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-orange-50 rounded-full opacity-50 blur-xl"></div>
+
+           <div className="p-10 text-center relative z-10">
+              <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner animate-pulse">
+                <i className="fas fa-store-slash text-red-500 text-4xl"></i>
+              </div>
+              
+              <h2 className="text-3xl font-bold text-gray-800 mb-3">ร้านค้าถูกระงับการใช้งาน</h2>
+              <p className="text-gray-500 mb-8 mx-auto leading-relaxed">
+                ร้านค้าของคุณถูกระงับการใช้งานชั่วคราว <br/>
+                กรุณาติดต่อผู้ดูแลระบบเพื่อตรวจสอบและดำเนินการแก้ไข
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                 <button onClick={() => navigate('/')} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-all shadow-sm">
+                    <i className="fas fa-home mr-2"></i> กลับหน้าหลัก
+                 </button>
+                 <a href="/contact" className="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all font-medium shadow-md shadow-red-200 block text-center">
+                    <i className="fas fa-headset mr-2"></i> ติดต่อเจ้าหน้าที่
+                 </a>
+              </div>
+           </div>
+
+           <div className="bg-gray-50 p-4 text-center border-t border-gray-100 text-xs text-gray-400">
+              สถานะ: Suspended • กรุณาติดต่อ Admin Support
+           </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f5f5f5] pt-32 pb-10 px-4 font-sans">
       <div className="max-w-5xl mx-auto">

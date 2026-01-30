@@ -19,10 +19,12 @@ const {
     updateOrderStatus, // PUT - อัพเดตสถานะคำสั่งซื้อ (Admin only)
     deleteOrder,       // DELETE - ลบคำสั่งซื้อ (Admin only)
     getAnalytics,      // GET - ดึงข้อมูลวิเคราะห์ (Admin only)
-    getProfile         // GET - ดึงข้อมูล profile (ผู้ใช้ที่ล็อกอิน)
+    getProfile,         // GET - ดึงข้อมูล profile (ผู้ใช้ที่ล็อกอิน)
+    uploadProfilePicture // POST - อัพโหลดรูปโปรไฟล์
 } = require('../controllers/user');
     
 const { authCheck, adminCheck } = require('../middlewares/authCheck');
+const { uploadProfileImage } = require('../middlewares/upload');
 
 router.get('/users',authCheck,adminCheck, listUsers);
 router.post('/change-status', authCheck,adminCheck, changeStatus);
@@ -37,6 +39,7 @@ router.delete('/user/cart/item', authCheck, removeCartItem);
 
 router.post('/user/address', authCheck, saveAddress);
 router.post('/user/update-profile', authCheck, updateProfile);
+router.post('/user/upload-profile-picture', authCheck, uploadProfileImage, uploadProfilePicture);
 router.post('/user/change-password', authCheck, changePassword);
 router.get('/user/profile', authCheck, getProfile);  // GET profile แยกจากการอัพเดต
 

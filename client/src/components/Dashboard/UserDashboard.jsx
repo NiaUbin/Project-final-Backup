@@ -301,16 +301,21 @@ const UserDashboard = ({ user, stats, loading }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-1">
           {/* Main Banner - Single Image */}
-          <div className="lg:col-span-3 relative h-52 sm:h-60 overflow-hidden shadow-lg">
+          <Link 
+            to="/products"
+            className="lg:col-span-3 relative h-52 sm:h-60 overflow-hidden shadow-lg group block cursor-pointer"
+          >
             <img
               src="/000000.jpg"
               alt="ช้อปปิ้งออนไลน์"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               onError={(e) =>
                 (e.target.src = "https://picsum.photos/seed/shop1/1200/400")
               }
             />
-          </div>
+            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-25deg] w-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
+          </Link>
           {/* Side Promo Banners */}
           <div className="hidden lg:flex flex-col gap-1 h-52 sm:h-60">
             <Link

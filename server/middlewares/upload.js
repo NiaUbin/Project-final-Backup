@@ -175,6 +175,50 @@ const uploadCategoryImage = async (req, res, next) => {
     }
 };
 
+// Middleware สำหรับอัพโหลดรูปภาพโปรไฟล์ไปยัง Cloudinary
+const uploadProfileImage = async (req, res, next) => {
+    try {
+        // ใช้ multer เพื่อ parse file - field name 'profilePicture'
+        const multerMiddleware = upload.single('profilePicture');
+        
+        multerMiddleware(req, res, async (err) => {
+            if (err) {
+                return handleUploadError(err, req, res, next);
+            }
+            
+            // ถ้ามีไฟล์ที่อัพโหลด ให้อัพโหลดไปยัง Cloudinary
+            if (req.file) {
+                try {
+                    const cloudinaryResult = await uploadToCloudinary(req.file.buffer, 'users');
+                    
+                    // เพิ่มข้อมูล Cloudinary ลงใน req.file
+                    req.file.cloudinary = cloudinaryResult;
+                    req.file.url = cloudinaryResult.secure_url;
+                    req.file.public_id = cloudinaryResult.public_id;
+                    req.file.asset_id = cloudinaryResult.asset_id;
+                    
+                    console.log(`✅ อัพโหลดรูปภาพโปรไฟล์ไปยัง Cloudinary สำเร็จ: ${cloudinaryResult.secure_url}`);
+                    next();
+                } catch (cloudinaryError) {
+                    console.error('❌ เกิดข้อผิดพลาดในการอัพโหลดรูปภาพโปรไฟล์ไปยัง Cloudinary:', cloudinaryError);
+                    return res.status(500).json({
+                        message: 'เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ',
+                        error: 'CLOUDINARY_UPLOAD_ERROR'
+                    });
+                }
+            } else {
+                // ถ้าไม่มีไฟล์ แจ้ง error เพราะ route นี้สำหรับ upload โดยเฉพาะ
+                return res.status(400).json({ 
+                    message: 'ไม่พบไฟล์รูปภาพ',
+                    error: 'NO_FILE_UPLOADED'
+                });
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // ฟังก์ชันดึง public_id จาก Cloudinary URL
 const extractPublicIdFromUrl = (url) => {
     if (!url || typeof url !== 'string') return null;
@@ -248,6 +292,7 @@ const deleteFileByUrl = async (url) => {
 module.exports = {
     uploadProductImages,
     uploadCategoryImage,
+    uploadProfileImage,
     handleUploadError,
     deleteFile,
     deleteFileByUrl,

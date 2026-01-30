@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { deleteFileByUrl } = require('../middlewares/upload');
 
 exports.listUsers = async (req, res) => {
     try {
@@ -1242,6 +1243,58 @@ exports.deleteUser = async (req, res) => {
         console.error('Error deleting user:', err);
         res.status(500).json({ 
             message: "เกิดข้อผิดพลาดในการลบผู้ใช้",
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+    }
+};
+
+// อัพโหลดรูปภาพโปรไฟล์
+exports.uploadProfilePicture = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        if (!req.file || !req.file.url) {
+            return res.status(400).json({ message: "ไม่พบไฟล์ที่อัพโหลด" });
+        }
+        
+        const newPictureUrl = req.file.url;
+        
+        // 1. ดึงข้อมูลผู้ใช้เดิมเพื่อดูว่ามีรูปเก่าหรือไม่
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { picture: true }
+        });
+        
+        // 2. ถ้ามีรูปเก่าและเป็นรูปจาก Cloudinary (ไม่ใช่ Google) ให้ลบออก
+        if (user.picture) {
+            // เช็คว่าเป็นรูป Cloudinary หรือไม่
+            if (user.picture.includes('cloudinary')) {
+                await deleteFileByUrl(user.picture);
+            }
+        }
+        
+        // 3. อัพเดต URL รูปใหม่ลงฐานข้อมูล
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { picture: newPictureUrl },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                picture: true
+            }
+        });
+        
+        res.status(200).json({
+            message: "อัพโหลดรูปโปรไฟล์สำเร็จ",
+            profilePicture: updatedUser.picture,
+            user: updatedUser
+        });
+        
+    } catch (err) {
+        console.error('Upload profile picture error:', err);
+        res.status(500).json({ 
+            message: "เกิดข้อผิดพลาดในการอัพโหลดรูปโปรไฟล์",
             error: process.env.NODE_ENV === 'development' ? err.message : undefined
         });
     }

@@ -1,11 +1,16 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 /* Custom Navbar Animations */
 @keyframes navbar-glow {
-  0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
-  50% { box-shadow: 0 4px 30px rgba(59, 130, 246, 0.15); }
+  0%,
+  100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 4px 30px rgba(59, 130, 246, 0.15);
+  }
 }
 
 .navbar-glow {
@@ -64,9 +69,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
@@ -207,13 +212,18 @@ body {
 }
 
 .btn-hover::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -233,13 +243,17 @@ body {
 }
 
 .card-hover::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.1),
+    rgba(147, 51, 234, 0.1)
+  );
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -277,7 +291,8 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -350,9 +365,15 @@ body {
   border-color: currentColor transparent transparent transparent;
 }
 
-.loading-ring div:nth-child(1) { animation-delay: -0.45s; }
-.loading-ring div:nth-child(2) { animation-delay: -0.3s; }
-.loading-ring div:nth-child(3) { animation-delay: -0.15s; }
+.loading-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.loading-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.loading-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
 
 @keyframes loading-ring {
   0% {
@@ -392,8 +413,14 @@ body {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -496,25 +523,25 @@ body {
 
 /* Loading Progress Bar Animation */
 @keyframes loading {
-  0% { 
-    transform: translateX(-100%); 
+  0% {
+    transform: translateX(-100%);
   }
-  50% { 
-    transform: translateX(0%); 
+  50% {
+    transform: translateX(0%);
   }
-  100% { 
-    transform: translateX(100%); 
+  100% {
+    transform: translateX(100%);
   }
 }
 
 @keyframes scaleIn {
-  from { 
-    transform: scale(0.9); 
-    opacity: 0; 
+  from {
+    transform: scale(0.9);
+    opacity: 0;
   }
-  to { 
-    transform: scale(1); 
-    opacity: 1; 
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -526,3 +553,8 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
+/* Background Pattern */
+.bg-dots-pattern {
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 20px 20px;
+}

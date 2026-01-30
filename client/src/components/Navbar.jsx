@@ -261,12 +261,12 @@ const Navbar = () => {
   return (
     <nav className="fixed w-full top-0 z-50">
       {/* Top Thin Bar */}
-      <div className="bg-orange-600 text-white text-xs">
+      <div className="bg-gradient-to-r from-[#ee4d2d] via-[#ff5b37] to-[#ff7337] text-white text-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 sm:gap-4">
-              <Link to="/seller" className="hover:underline text-[11px] sm:text-xs">Seller Centre</Link>
-              <Link to="/stores" className="hover:underline text-[11px] sm:text-xs">ร้านค้า</Link>
+              <Link to="/seller" className="hover:text-white/80 transition-colors text-[11px] sm:text-xs">Seller Centre</Link>
+              <Link to="/stores" className="hover:text-white/80 transition-colors text-[11px] sm:text-xs">ร้านค้า</Link>
               <div className="hidden md:flex items-center gap-2">
                 <i className="fab fa-facebook text-sm cursor-pointer hover:opacity-80"></i>
                 <i className="fab fa-instagram text-sm cursor-pointer hover:opacity-80"></i>
@@ -274,11 +274,11 @@ const Navbar = () => {
               </div>
             </div>
             <div className="flex items-center gap-3 sm:gap-4">
-              <Link to="/notifications" className="flex items-center gap-1 hover:underline text-[11px] sm:text-xs">
+              <Link to="/notifications" className="flex items-center gap-1 hover:text-white/80 transition-colors text-[11px] sm:text-xs">
                 <i className="fas fa-bell text-xs"></i>
                 <span className="hidden sm:inline">สินค้าใหม่</span>
               </Link>
-              <Link to="/help" className="flex items-center gap-1 hover:underline text-[11px] sm:text-xs">
+              <Link to="/help" className="flex items-center gap-1 hover:text-white/80 transition-colors text-[11px] sm:text-xs">
                 <i className="fas fa-question-circle text-xs"></i>
                 <span className="hidden sm:inline">ช่วยเหลือ</span>
               </Link>
@@ -292,21 +292,22 @@ const Navbar = () => {
                   <i className={`fas fa-chevron-down text-[10px] transition-transform duration-300 ${isLanguageDropdownOpen ? 'rotate-180' : ''}`}></i>
                 </button>
 
-                {/* Dropdown with beautiful animation */}
-                <div className={`absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 transition-all duration-300 ease-out transform origin-top-right ${isLanguageDropdownOpen
+                <div className={`absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) transform origin-top-right ${isLanguageDropdownOpen
                   ? 'opacity-100 scale-100 translate-y-0'
                   : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                   }`}>
                   {/* Header */}
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 px-4 py-2.5 border-b border-gray-100">
+                  <div className="bg-gray-50/50 px-4 py-3 border-b border-gray-100 backdrop-blur-sm">
                     <div className="flex items-center gap-2">
-                      <i className="fas fa-globe text-orange-500 text-sm"></i>
-                      <span className="text-xs font-semibold text-gray-700">เลือกภาษา</span>
+                      <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                         <i className="fas fa-globe text-orange-500 text-sm"></i>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-800">เลือกภาษา</span>
                     </div>
                   </div>
 
                   {/* Language List */}
-                  <div className="py-1.5">
+                  <div className="p-2 space-y-1">
                     {languages.map((lang, index) => (
                       <button
                         key={lang.code}
@@ -314,18 +315,20 @@ const Navbar = () => {
                           setSelectedLanguage(lang.name);
                           setIsLanguageDropdownOpen(false);
                         }}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-all duration-200 flex items-center gap-3 hover:bg-orange-50 hover:translate-x-1 ${selectedLanguage === lang.name
-                          ? 'bg-orange-50 text-orange-600 font-semibold border-l-4 border-orange-500'
-                          : 'text-gray-700 hover:text-orange-600'
+                        className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-200 flex items-center justify-between group ${selectedLanguage === lang.name
+                          ? 'bg-orange-50 text-orange-700 font-medium ring-1 ring-orange-100'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-orange-600'
                           }`}
                         style={{
                           animationDelay: `${index * 30}ms`
                         }}
                       >
-                        <span className="text-lg">{lang.flag}</span>
-                        <span className="flex-1">{lang.name}</span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl filter drop-shadow-sm">{lang.flag}</span>
+                            <span>{lang.name}</span>
+                        </div>
                         {selectedLanguage === lang.name && (
-                          <i className="fas fa-check-circle text-orange-500 text-xs"></i>
+                          <i className="fas fa-check text-orange-500 text-xs bg-orange-100 rounded-full p-1"></i>
                         )}
                       </button>
                     ))}
@@ -347,63 +350,69 @@ const Navbar = () => {
                     <i className={`fas fa-chevron-down text-[10px] transition-transform duration-300 ${isProfileDropdownOpen ? 'rotate-180' : ''}`}></i>
                   </button>
 
-                  {/* Profile Dropdown with beautiful Shopee-style animation */}
-                  <div className={`absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 transition-all duration-300 ease-out transform origin-top-right ${isProfileDropdownOpen
+                  <div className={`absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_15px_50px_-10px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1) transform origin-top-right ${isProfileDropdownOpen
                     ? 'opacity-100 scale-100 translate-y-0'
                     : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                     }`}>
-                    {/* Header with gradient */}
-                    <div className="bg-gradient-to-r from-orange-500 via-orange-500 to-red-500 px-4 py-4 text-white">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg ${user.role === 'admin'
-                          ? 'bg-white/20 backdrop-blur-sm'
-                          : user.role === 'seller'
-                            ? 'bg-white/20 backdrop-blur-sm'
-                            : 'bg-white/20 backdrop-blur-sm'
-                          }`}>
-                          <i className={`fas text-lg ${user.role === 'admin' ? 'fa-crown' : user.role === 'seller' ? 'fa-store' : 'fa-user'
-                            }`}></i>
+                    {/* Header with Glassmorphism Effect */}
+                    <div className="relative overflow-hidden p-1">
+                        <div className="bg-gradient-to-br from-[#ee4d2d] to-[#ff7337] rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                             {/* Decorative Circles */}
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                             <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/5 rounded-full blur-xl translate-y-1/2 -translate-x-1/2"></div>
+                             
+                             <div className="relative flex items-center gap-4">
+                                <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white shadow-inner border-2 border-white/20 ${user.role === 'admin'
+                                  ? 'bg-gradient-to-br from-yellow-400 to-amber-600'
+                                  : 'bg-white/20 backdrop-blur-md'
+                                  }`}>
+                                  <i className={`fas text-xl drop-shadow-md ${user.role === 'admin' ? 'fa-crown' : user.role === 'seller' ? 'fa-store' : 'fa-user'
+                                    }`}></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-base truncate drop-shadow-sm leading-tight">{user.name}</p>
+                                  <p className="text-xs text-white/90 truncate opacity-80 mb-1.5">{user.email}</p>
+                                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-black/10 backdrop-blur-sm border border-white/10`}>
+                                    <i className={`fas ${user.role === 'admin' ? 'fa-crown text-yellow-300' : user.role === 'seller' ? 'fa-store text-blue-200' : 'fa-user text-white'
+                                      } text-[10px]`}></i>
+                                    {user.role === 'admin' ? 'ผู้ดูแลระบบ' : user.role === 'seller' ? 'ร้านค้า' : 'ผู้ใช้ทั่วไป'}
+                                  </div>
+                                </div>
+                             </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-white text-sm truncate">{user.name}</p>
-                          <p className="text-xs text-white/80 truncate">{user.email}</p>
-                        </div>
-                      </div>
-                      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm border border-white/30 ${user.role === 'admin'
-                        ? 'text-white'
-                        : user.role === 'seller'
-                          ? 'text-white'
-                          : 'text-white'
-                        }`}>
-                        <i className={`fas ${user.role === 'admin' ? 'fa-crown' : user.role === 'seller' ? 'fa-store' : 'fa-user'
-                          } text-xs`}></i>
-                        {user.role === 'admin' ? 'ผู้ดูแลระบบ' : user.role === 'seller' ? 'ร้านค้า' : 'ผู้ใช้ทั่วไป'}
-                      </div>
                     </div>
 
                     {/* Menu Items */}
-                    <div className="py-2">
+                    <div className="p-2 space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar">
                       {user.role === 'seller' ? (
                         <>
                           <Link
                             to="/seller/dashboard"
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 hover:translate-x-1 group"
+                            className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-orange-100 group-hover:bg-orange-500 flex items-center justify-center transition-colors">
-                              <i className="fas fa-box text-orange-600 group-hover:text-white text-xs"></i>
+                            <div className="w-9 h-9 rounded-lg bg-orange-100 group-hover:bg-orange-500 flex items-center justify-center transition-all duration-200 group-hover:shadow-md group-hover:scale-105">
+                              <i className="fas fa-box text-orange-600 group-hover:text-white text-sm"></i>
                             </div>
-                            <span className="font-medium">จัดการสินค้า</span>
+                            <div className="flex-1">
+                                <span className="font-semibold text-gray-800 group-hover:text-orange-700 block">จัดการสินค้า</span>
+                                <span className="text-xs text-gray-500 group-hover:text-orange-600/70">บริหารจัดการสต็อกและสินค้า</span>
+                            </div>
+                            <i className="fas fa-chevron-right text-gray-300 text-xs group-hover:text-orange-400 group-hover:translate-x-1 transition-transform"></i>
                           </Link>
                           <Link
                             to="/profile"
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 hover:translate-x-1 group"
+                             className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-500 flex items-center justify-center transition-colors">
-                              <i className="fas fa-user text-blue-600 group-hover:text-white text-xs"></i>
+                            <div className="w-9 h-9 rounded-lg bg-blue-100 group-hover:bg-blue-500 flex items-center justify-center transition-all duration-200 group-hover:shadow-md group-hover:scale-105">
+                              <i className="fas fa-user text-blue-600 group-hover:text-white text-sm"></i>
                             </div>
-                            <span className="font-medium">โปรไฟล์</span>
+                            <div className="flex-1">
+                                <span className="font-semibold text-gray-800 group-hover:text-blue-700 block">โปรไฟล์ส่วนตัว</span>
+                                <span className="text-xs text-gray-500 group-hover:text-blue-600/70">แก้ไขข้อมูลส่วนตัว</span>
+                            </div>
+                            <i className="fas fa-chevron-right text-gray-300 text-xs group-hover:text-blue-400 group-hover:translate-x-1 transition-transform"></i>
                           </Link>
                         </>
                       ) : isAdmin ? (
@@ -411,22 +420,30 @@ const Navbar = () => {
                           <Link
                             to="/admin"
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-amber-600 hover:bg-amber-50 transition-all duration-200 hover:translate-x-1 group font-semibold"
+                             className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-amber-50 rounded-xl transition-all duration-200 group"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-amber-100 group-hover:bg-amber-500 flex items-center justify-center transition-colors">
-                              <i className="fas fa-tools text-amber-600 group-hover:text-white text-xs"></i>
+                            <div className="w-9 h-9 rounded-lg bg-amber-100 group-hover:bg-amber-500 flex items-center justify-center transition-all duration-200 group-hover:shadow-md group-hover:scale-105">
+                              <i className="fas fa-tools text-amber-600 group-hover:text-white text-sm"></i>
                             </div>
-                            <span>จัดการระบบ</span>
+                             <div className="flex-1">
+                                <span className="font-semibold text-gray-800 group-hover:text-amber-700 block">จัดการระบบ</span>
+                                <span className="text-xs text-gray-500 group-hover:text-amber-600/70">สำหรับผู้ดูแลระบบ</span>
+                            </div>
+                             <i className="fas fa-chevron-right text-gray-300 text-xs group-hover:text-amber-400 group-hover:translate-x-1 transition-transform"></i>
                           </Link>
                           <Link
                             to="/profile"
                             onClick={() => setIsProfileDropdownOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 hover:translate-x-1 group"
+                             className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
                           >
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-500 flex items-center justify-center transition-colors">
-                              <i className="fas fa-user text-blue-600 group-hover:text-white text-xs"></i>
+                             <div className="w-9 h-9 rounded-lg bg-blue-100 group-hover:bg-blue-500 flex items-center justify-center transition-all duration-200 group-hover:shadow-md group-hover:scale-105">
+                              <i className="fas fa-user text-blue-600 group-hover:text-white text-sm"></i>
                             </div>
-                            <span className="font-medium">โปรไฟล์</span>
+                             <div className="flex-1">
+                                <span className="font-semibold text-gray-800 group-hover:text-blue-700 block">โปรไฟล์ส่วนตัว</span>
+                                <span className="text-xs text-gray-500 group-hover:text-blue-600/70">แก้ไขข้อมูลส่วนตัว</span>
+                            </div>
+                             <i className="fas fa-chevron-right text-gray-300 text-xs group-hover:text-blue-400 group-hover:translate-x-1 transition-transform"></i>
                           </Link>
                         </>
                       ) : (
@@ -436,33 +453,37 @@ const Navbar = () => {
                               key={item.name}
                               to={item.href}
                               onClick={() => setIsProfileDropdownOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 hover:translate-x-1 group"
+                              className="flex items-center gap-3 px-3 py-3 text-sm text-gray-700 hover:bg-orange-50 rounded-xl transition-all duration-200 group"
                               style={{
                                 animationDelay: `${index * 50}ms`
                               }}
                             >
-                              <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-orange-500 flex items-center justify-center transition-colors">
-                                <i className={`${item.icon} text-gray-600 group-hover:text-white text-xs`}></i>
+                              <div className="w-9 h-9 rounded-lg bg-gray-100 group-hover:bg-orange-500 flex items-center justify-center transition-all duration-200 group-hover:shadow-md group-hover:scale-105">
+                                <i className={`${item.icon} text-gray-500 group-hover:text-white text-sm`}></i>
                               </div>
-                              <span className="font-medium">{item.name}</span>
+                              <div className="flex-1">
+                                <span className="font-semibold text-gray-700 group-hover:text-orange-700 block">{item.name}</span>
+                              </div>
+                               <i className="fas fa-chevron-right text-gray-300 text-xs group-hover:text-orange-400 group-hover:translate-x-1 transition-transform"></i>
                             </Link>
                           ))}
                         </>
                       )}
 
                       {/* Logout Button */}
-                      <div className="border-t border-gray-200 mt-2 pt-2">
+                      <div className="pt-1 mt-1 border-t border-dashed border-gray-200">
                         <button
                           onClick={() => {
                             logout();
                             setIsProfileDropdownOpen(false);
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-all duration-200 hover:translate-x-1 group"
+                           className="w-full flex items-center gap-3 px-3 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-red-100 group-hover:bg-red-500 flex items-center justify-center transition-colors">
-                            <i className="fas fa-sign-out-alt text-red-600 group-hover:text-white text-xs"></i>
-                          </div>
-                          <span className="font-medium">ออกจากระบบ</span>
+                           <div className="w-9 h-9 rounded-lg bg-red-50 group-hover:bg-red-500 flex items-center justify-center transition-all duration-200 group-hover:shadow-md group-hover:scale-105">
+                             <i className="fas fa-sign-out-alt text-red-500 group-hover:text-white text-sm"></i>
+                           </div>
+                           <span className="font-semibold flex-1 text-left">ออกจากระบบ</span>
+                           <i className="fas fa-power-off text-red-200 group-hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                         </button>
                       </div>
                     </div>
@@ -474,8 +495,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Main Bar - ชิดกับ Top Bar โดยไม่มีช่องว่าง */}
-      <div className="bg-orange-600 shadow-md">
+      {/* Main Bar - Beautiful Gradient */}
+      <div className="bg-gradient-to-r from-[#ee4d2d] via-[#ff5b37] to-[#ff7337] shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-2.5">
           <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4">
             {/* Logo */}
@@ -528,7 +549,7 @@ const Navbar = () => {
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder="ค้นหาสินค้า..."
-                    className="w-full px-4 py-2.5 pr-10 rounded-l-sm text-sm text-gray-900 focus:outline-none border-0"
+                    className="w-full px-4 py-2.5 pr-10 rounded-l-lg text-sm text-gray-900 focus:outline-none border-0 shadow-inner bg-gray-50 focus:bg-white transition-colors"
                   />
                   {/* Clear Button (X) */}
                   {searchQuery.length > 0 && (
@@ -550,7 +571,7 @@ const Navbar = () => {
                 </div>
                 <button
                   onClick={handleSearch}
-                  className="px-5 bg-[#fb6445] hover:bg-[#f04d2e] text-white rounded-r-sm flex items-center justify-center"
+                  className="px-6 bg-gradient-to-b from-[#fb6445] to-[#f04d2e] hover:brightness-110 text-white rounded-r-lg flex items-center justify-center shadow-md transition-all duration-300"
                 >
                   {isSearching ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
