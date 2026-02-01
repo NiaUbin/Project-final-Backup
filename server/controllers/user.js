@@ -679,6 +679,7 @@ exports.getOrder = async (req, res) => {
             include: {
                 products: {
                     include: {
+                        reviews: true,
                         product: {
                             include: {
                                 images: true,

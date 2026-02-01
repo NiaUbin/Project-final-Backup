@@ -721,7 +721,7 @@ const Products = () => {
             )}
 
             {/* Products Grid - Shopee Style */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5"> 
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"> 
                 {currentProducts.map((p) => {
                   const isSelected = selectedProducts.has(p.id);
                   const soldCount = getRandomSold(p.id);
@@ -784,9 +784,9 @@ const Products = () => {
                       </div>
 
                       {/* Product Info */}
-                      <div className="p-2">
+                      <div className="p-3">
                         {/* Title */}
-                        <h3 className="text-xs sm:text-sm text-gray-800 line-clamp-2 min-h-[32px] sm:min-h-[40px] mb-1 leading-tight">
+                        <h3 className="text-sm text-gray-800 line-clamp-2 min-h-[40px] mb-2 leading-snug">
                           {p.title}
                         </h3>
 

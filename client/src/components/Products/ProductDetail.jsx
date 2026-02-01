@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ import { isProductOnDiscount, getCurrentPrice, getDiscountedPrice, getDiscountPe
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToCart } = useCart();
   const { user } = useAuth();
 
@@ -100,9 +101,25 @@ const ProductDetail = () => {
   }, [id, navigate]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Only scroll to top if there is no hash
+    if (!location.hash) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     loadProduct();
-  }, [loadProduct]);
+  }, [loadProduct, location.hash]);
+
+  // Handle hash scrolling after product loads
+  useEffect(() => {
+    if (location.hash && product) {
+      const id = location.hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [location.hash, product]);
 
   const handlePrevProduct = useCallback(async () => {
     try {
@@ -823,7 +840,7 @@ const ProductDetail = () => {
         </div>
 
         {/* Reviews */}
-        <div className="bg-white rounded-sm shadow-sm p-4 sm:p-6 mb-4">
+        <div id="reviews" className="bg-white rounded-sm shadow-sm p-4 sm:p-6 mb-4">
           <ReviewList productId={product.id} />
         </div>
 

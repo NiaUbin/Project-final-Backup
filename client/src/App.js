@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Components
 import Navbar from './components/Navbar';
@@ -23,9 +23,7 @@ import ProductDetail from './components/Products/ProductDetail';
 import SellerOnboarding from './components/Seller/SellerOnboarding';
 import StoreList from './components/Seller/StoreList';
 import StoreDetail from './components/Seller/StoreDetail';
-import SellerAddProduct from './components/Seller/SellerAddProduct';
-import SellerDashboard from './components/Seller/SellerDashboard';
-import StoreOrderManagement from './components/Seller/StoreOrderManagement';
+import SellerPanel from './components/Seller/SellerPanel';
 import ScrollToTop from './components/Common/ScrollToTop';
 import NewProductNotifications from './components/Notifications/NewProductNotifications';
 // Context
@@ -58,11 +56,15 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 };
 
 const AppContent = () => {
+  const location = useLocation();
+  // หน้า admin และ seller center ไม่แสดง Navbar และใช้ layout พิเศษ
+  const isAdminOrSellerPage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/seller/dashboard') || location.pathname.startsWith('/seller/orders') || location.pathname.startsWith('/seller/products');
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className={isAdminOrSellerPage ? '' : 'min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50'}>
       <ScrollToTop />
       <Navbar />
-      <main className="pt-16">
+      <main className={isAdminOrSellerPage ? '' : 'pt-16'}>
         <Routes>
           <Route 
             path="/" 
@@ -103,23 +105,23 @@ const AppContent = () => {
             path="/seller/dashboard" 
             element={
               <ProtectedRoute>
-                <SellerDashboard />
+                <SellerPanel />
               </ProtectedRoute>
             }
           />
           <Route 
-            path="/seller/products/new" 
+            path="/seller/products/*" 
             element={
               <ProtectedRoute>
-                <SellerAddProduct />
+                <SellerPanel />
               </ProtectedRoute>
             }
           />
           <Route 
-            path="/seller/orders" 
+            path="/seller/orders/*" 
             element={
               <ProtectedRoute>
-                <StoreOrderManagement />
+                <SellerPanel />
               </ProtectedRoute>
             }
           />
@@ -180,7 +182,7 @@ const AppContent = () => {
           />
         </Routes>
       </main>
-      <Footer />
+      {!isAdminOrSellerPage && <Footer />}
     </div>
   );
 };

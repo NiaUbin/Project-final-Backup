@@ -1,8 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const Footer = () => {
+  const location = useLocation();
   const currentYear = new Date().getFullYear();
+
+  // Hide Footer on Admin/Dashboard pages
+  if (location.pathname.startsWith('/admin') || location.pathname === '/dashboard') {
+    return null;
+  }
 
   return (
     <footer className="bg-gradient-to-b from-gray-50 to-white pt-16 pb-8 px-6 md:px-12 lg:px-20 border-t-2 border-gray-200">

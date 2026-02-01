@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import axios from 'axios';
+import LogoutModal from './Common/LogoutModal';
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -23,6 +24,7 @@ const Navbar = () => {
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const suggestionRefs = useRef([]);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // โหลดหมวดหมู่สินค้าทั้งหมด
   useEffect(() => {
@@ -258,6 +260,15 @@ const Navbar = () => {
     // { name: 'สิทธิ์การใช้งาน', href: '/roles', icon: 'fas fa-shield-alt' },
   ];
 
+  // Hide Navbar on Admin and Seller Center pages
+  const isSellerCenter = location.pathname.startsWith('/seller/dashboard') || 
+                         location.pathname.startsWith('/seller/orders') || 
+                         location.pathname.startsWith('/seller/products');
+  
+  if (location.pathname.startsWith('/admin') || isSellerCenter) {
+    return null;
+  }
+
   return (
     <nav className="fixed w-full top-0 z-50">
       {/* Top Thin Bar */}
@@ -474,8 +485,9 @@ const Navbar = () => {
                       <div className="pt-1 mt-1 border-t border-dashed border-gray-200">
                         <button
                           onClick={() => {
-                            logout();
+                            // logout();
                             setIsProfileDropdownOpen(false);
+                            setShowLogoutConfirm(true);
                           }}
                            className="w-full flex items-center gap-3 px-3 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group"
                         >
@@ -751,6 +763,13 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      
+      {/* Logout Confirmation Modal */}
+      <LogoutModal 
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={logout}
+      />
     </nav>
   );
 };

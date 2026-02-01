@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ProductForm from '../Admin/ProductForm';
-import { CategoryManagement } from '../Admin/AdminPanel';
+import CategoryManagement from '../Admin/CategoryManagement';
 
 const SellerDashboard = () => {
   const [store, setStore] = useState(null);

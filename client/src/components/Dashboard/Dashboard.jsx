@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import AdminPanel from '../Admin/AdminPanel';
 import UserDashboard from './UserDashboard';
 import axios from 'axios';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const { getCartItemCount } = useCart();
   const [stats, setStats] = useState({
@@ -15,6 +16,13 @@ const Dashboard = () => {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Redirect admin to /admin page
+  useEffect(() => {
+    if (isAdmin) {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAdmin, navigate]);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -105,9 +113,15 @@ const Dashboard = () => {
     );
   }
 
-  // Render different dashboards based on user role
+  // Admin should be redirected, but show loading just in case
   if (isAdmin) {
-    return <AdminPanel user={user} stats={stats} loading={loading} />;
+    return (
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
   }
 
   return <UserDashboard user={user} stats={stats} loading={loading} recentOrders={recentOrders} />;

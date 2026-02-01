@@ -60,8 +60,6 @@ const Analytics = () => {
       
       if (response.data.analytics) {
         const data = response.data.analytics;
-        
-        // Set summary statistics
         setAnalytics({
           totalUsers: data.summary.totalUsers,
           totalOrders: data.summary.totalOrders,
@@ -70,8 +68,6 @@ const Analytics = () => {
           conversionRate: data.summary.conversionRate,
           newUsers: data.summary.newUsers
         });
-
-        // Set detailed data for charts
         setRealData({
           trends: data.trends,
           orderStatus: data.orderStatus,
@@ -82,28 +78,15 @@ const Analytics = () => {
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      // Fallback to demo data if API fails
-      setAnalytics({
-        totalUsers: 0,
-        totalOrders: 0,
-        totalRevenue: 0,
-        averageOrderValue: 0,
-        conversionRate: 0,
-        newUsers: 0
-      });
-      setRealData({
-        trends: { dailySales: {}, dailyOrders: {} },
-        orderStatus: [],
-        topProducts: [],
-        categoryDistribution: {},
-        monthlySales: {}
-      });
+      // Fallback
+      setAnalytics({ totalUsers: 0, totalOrders: 0, totalRevenue: 0, averageOrderValue: 0, conversionRate: 0, newUsers: 0 });
+      setRealData({ trends: { dailySales: {}, dailyOrders: {} }, orderStatus: [], topProducts: [], categoryDistribution: {}, monthlySales: {} });
     } finally {
       setLoading(false);
     }
   };
 
-  // Process real sales data for charts
+  // Process data for charts
   const processRealSalesData = () => {
     const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
     const labels = [];
@@ -116,37 +99,38 @@ const Analytics = () => {
       const dateStr = date.toISOString().split('T')[0];
       
       labels.push(date.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }));
-      
-      // Use real data if available, otherwise 0
       salesData.push(realData.trends?.dailySales?.[dateStr] || 0);
       ordersData.push(realData.trends?.dailyOrders?.[dateStr] || 0);
     }
-
     return { labels, salesData, ordersData };
   };
 
   const { labels, salesData, ordersData } = processRealSalesData();
 
-  // Sales Trend Chart (Line)
+  // Sales Trend Chart Options
   const salesTrendData = {
     labels,
     datasets: [
       {
         label: 'ยอดขาย (บาท)',
         data: salesData,
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: '#4f46e5', // indigo-600
+        backgroundColor: 'rgba(79, 70, 229, 0.1)',
         fill: true,
-        tension: 0.4
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 5
       },
       {
         label: 'จำนวนคำสั่งซื้อ',
         data: ordersData,
-        borderColor: 'rgb(16, 185, 129)',
+        borderColor: '#10b981', // emerald-500
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         fill: true,
         tension: 0.4,
-        yAxisID: 'y1'
+        yAxisID: 'y1',
+        pointRadius: 2,
+         pointHoverRadius: 5
       }
     ]
   };
@@ -154,52 +138,28 @@ const Analytics = () => {
   const salesTrendOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    aspectRatio: 2,
     plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          font: { size: 9 },
-          padding: 5,
-          boxWidth: 12
-        }
-      },
-      title: {
-        display: true,
-        text: 'แนวโน้มยอดขายและคำสั่งซื้อ',
-        font: { size: 11, weight: 'bold' },
-        padding: { bottom: 5 }
+      legend: { position: 'top', labels: { font: { family: "'Prompt', sans-serif" }, usePointStyle: true, boxWidth: 6 } },
+      tooltip: { 
+          backgroundColor: '#1e293b', 
+          titleFont: { family: "'Prompt', sans-serif" }, 
+          bodyFont: { family: "'Prompt', sans-serif" },
+          padding: 10,
+          cornerRadius: 8
       }
     },
     scales: {
-      y: {
-        type: 'linear',
-        display: true,
-        position: 'left',
-        ticks: {
-          font: { size: 9 }
-        }
-      },
-      y1: {
-        type: 'linear',
-        display: true,
-        position: 'right',
-        grid: {
-          drawOnChartArea: false,
-        },
-        ticks: {
-          font: { size: 9 }
-        }
-      },
-      x: {
-        ticks: {
-          font: { size: 9 }
-        }
-      }
-    }
+      y: { type: 'linear', display: true, position: 'left', grid: { borderDash: [2, 4], color: '#f1f5f9' }, ticks: { font: { family: "'Prompt', sans-serif" } } },
+      y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { family: "'Prompt', sans-serif" } } },
+      x: { grid: { display: false }, ticks: { font: { size: 10, family: "'Prompt', sans-serif" }, maxTicksLimit: 7 } }
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
   };
 
-  // Monthly Sales Comparison (Bar) - Real Data
+  // Monthly Sales
   const processMonthlyData = () => {
     const monthLabels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     const currentYear = new Date().getFullYear();
@@ -209,11 +169,9 @@ const Analytics = () => {
     monthLabels.forEach((_, index) => {
       const monthKey = `${currentYear}-${String(index + 1).padStart(2, '0')}`;
       const lastYearKey = `${currentYear - 1}-${String(index + 1).padStart(2, '0')}`;
-      
       thisYearData.push(realData.monthlySales?.[monthKey] || 0);
       lastYearData.push(realData.monthlySales?.[lastYearKey] || 0);
     });
-
     return { monthLabels, thisYearData, lastYearData };
   };
 
@@ -222,429 +180,248 @@ const Analytics = () => {
   const monthlySalesData = {
     labels: monthLabels,
     datasets: [
-      {
-        label: `ปี ${new Date().getFullYear()}`,
-        data: thisYearData,
-        backgroundColor: 'rgba(59, 130, 246, 0.8)'
-      },
-      {
-        label: `ปี ${new Date().getFullYear() - 1}`,
-        data: lastYearData,
-        backgroundColor: 'rgba(156, 163, 175, 0.8)'
-      }
+      { label: `ปี ${new Date().getFullYear()}`, data: thisYearData, backgroundColor: '#6366f1', borderRadius: 4 }, // indigo-500
+      { label: `ปี ${new Date().getFullYear() - 1}`, data: lastYearData, backgroundColor: '#cbd5e1', borderRadius: 4 } // slate-300
     ]
   };
 
   const monthlySalesOptions = {
-    responsive: true,
+     responsive: true,
     maintainAspectRatio: false,
-    aspectRatio: 2,
     plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          font: { size: 9 },
-          padding: 5,
-          boxWidth: 12
-        }
-      },
-      title: {
-        display: true,
-        text: 'เปรียบเทียบยอดขายรายเดือน',
-        font: { size: 11, weight: 'bold' },
-        padding: { bottom: 5 }
-      }
+      legend: { position: 'top', labels: { font: { family: "'Prompt', sans-serif" }, usePointStyle: true, boxWidth: 6 } }
     },
     scales: {
-      y: {
-        ticks: {
-          font: { size: 9 }
-        }
-      },
-      x: {
-        ticks: {
-          font: { size: 9 }
-        }
-      }
+        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f1f5f9' }, ticks: { font: { family: "'Prompt', sans-serif", size: 10 } } },
+        x: { grid: { display: false }, ticks: { font: { family: "'Prompt', sans-serif", size: 10 } } }
     }
   };
 
-  // Product Categories (Doughnut) - Real Data
+  // Category Doughnut
   const processCategoryData = () => {
     const categories = Object.keys(realData.categoryDistribution || {});
     const values = Object.values(realData.categoryDistribution || {});
     
-    if (categories.length === 0) {
-      return {
-        labels: ['ไม่มีข้อมูล'],
-        data: [1],
-        colors: ['#E5E7EB']
-      };
-    }
+    if (categories.length === 0) return { labels: ['ไม่มีข้อมูล'], data: [1], colors: ['#f1f5f9'] };
 
-    const colors = [
-      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
-      '#8B5CF6', '#6B7280', '#EC4899', '#14B8A6',
-      '#F97316', '#84CC16'
-    ];
-
-    return {
-      labels: categories,
-      data: values,
-      colors: colors.slice(0, categories.length)
-    };
+    const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#3b82f6'];
+    return { labels: categories, data: values, colors: colors.slice(0, categories.length) };
   };
 
-  const categoryDataProcessed = processCategoryData();
-  
-  const categoryData = {
-    labels: categoryDataProcessed.labels,
-    datasets: [
-      {
-        data: categoryDataProcessed.data,
-        backgroundColor: categoryDataProcessed.colors,
-        borderWidth: 2,
-        borderColor: '#ffffff'
-      }
-    ]
+  const categoryData = processCategoryData();
+  const doughnutData = {
+      labels: categoryData.labels,
+      datasets: [{ data: categoryData.data, backgroundColor: categoryData.colors, borderWidth: 0, hoverOffset: 4 }]
   };
 
-  const categoryOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    aspectRatio: 1.5,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: { size: 8 },
-          padding: 4,
-          boxWidth: 10
-        }
-      },
-      title: {
-        display: true,
-        text: 'การแจกแจงตามหมวดหมู่สินค้า (%)',
-        font: { size: 11, weight: 'bold' },
-        padding: { bottom: 5 }
-      }
-    }
-  };
-
-  // Order Status (Pie) - Real Data
+  // Order Status Pie
   const processOrderStatusData = () => {
-    const statusMapping = {
-      'Delivered': 'เสร็จสิ้น',
-      'Processing': 'กำลังดำเนินการ',
-      'Cancelled': 'ยกเลิก',
-      'Not Process': 'รอดำเนินการ',
-      'Shipped': 'จัดส่งแล้ว'
+     const statusMapping = {
+      'Delivered': 'เสร็จสิ้น', 'Processing': 'กำลังดำเนินการ', 'Cancelled': 'ยกเลิก',
+      'Not Process': 'รอดำเนินการ', 'Shipped': 'จัดส่งแล้ว'
     };
-
     const statusColors = {
-      'เสร็จสิ้น': '#10B981',
-      'กำลังดำเนินการ': '#F59E0B',
-      'ยกเลิก': '#EF4444',
-      'รอดำเนินการ': '#6B7280',
-      'จัดส่งแล้ว': '#3B82F6'
+      'เสร็จสิ้น': '#10b981', 'กำลังดำเนินการ': '#f59e0b', 'ยกเลิก': '#ef4444',
+      'รอดำเนินการ': '#94a3b8', 'จัดส่งแล้ว': '#6366f1'
     };
-
-    const labels = [];
-    const data = [];
-    const colors = [];
-
-    if (realData.orderStatus && realData.orderStatus.length > 0) {
-      realData.orderStatus.forEach(item => {
-        const thaiStatus = statusMapping[item.oderStatus] || item.oderStatus;
-        labels.push(thaiStatus);
-        data.push(item._count.id);
-        colors.push(statusColors[thaiStatus] || '#6B7280');
-      });
+    const labels = []; const data = []; const colors = [];
+    if (realData.orderStatus?.length > 0) {
+        realData.orderStatus.forEach(item => {
+            const thaiStatus = statusMapping[item.oderStatus] || item.oderStatus;
+            labels.push(thaiStatus);
+            data.push(item._count.id);
+            colors.push(statusColors[thaiStatus] || '#cbd5e1');
+        });
     } else {
-      labels.push('ไม่มีข้อมูล');
-      data.push(1);
-      colors.push('#E5E7EB');
+        labels.push('ไม่มีข้อมูล'); data.push(1); colors.push('#f1f5f9');
     }
-
     return { labels, data, colors };
   };
-
-  const orderStatusProcessed = processOrderStatusData();
-
-  const orderStatusData = {
-    labels: orderStatusProcessed.labels,
-    datasets: [
-      {
-        data: orderStatusProcessed.data,
-        backgroundColor: orderStatusProcessed.colors,
-        borderWidth: 2,
-        borderColor: '#ffffff'
+  
+  const orderStatusP = processOrderStatusData();
+  const pieData = {
+      labels: orderStatusP.labels,
+      datasets: [{ data: orderStatusP.data, backgroundColor: orderStatusP.colors, borderWidth: 0, hoverOffset: 4 }]
+  };
+  
+  const pieOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+          legend: { position: 'right', labels: { font: { size: 10, family: "'Prompt', sans-serif" }, boxWidth: 10, padding: 10 } }
       }
-    ]
   };
 
-  const orderStatusOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    aspectRatio: 1.5,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: { size: 8 },
-          padding: 4,
-          boxWidth: 10
-        }
-      },
-      title: {
-        display: true,
-        text: 'สถานะคำสั่งซื้อ (%)',
-        font: { size: 11, weight: 'bold' },
-        padding: { bottom: 5 }
-      }
-    }
+
+  // Top Products
+  const processTopProducts = () => {
+      if(!realData.topProducts?.length) return { labels: ['ไม่มีข้อมูล'], data: [0] };
+      const labels = realData.topProducts.slice(0, 5).map(p => p.name.length > 30 ? p.name.substring(0,30)+'...' : p.name);
+      const data = realData.topProducts.slice(0, 5).map(p => p.revenue);
+      return { labels, data };
   };
-
-  // Top Products (Bar) - Real Data
-  const processTopProductsData = () => {
-    if (!realData.topProducts || realData.topProducts.length === 0) {
-      return {
-        labels: ['ไม่มีข้อมูล'],
-        data: [0]
-      };
-    }
-
-    const labels = realData.topProducts.slice(0, 10).map(product => 
-      product.name.length > 20 ? product.name.substring(0, 20) + '...' : product.name
-    );
-    const data = realData.topProducts.slice(0, 10).map(product => product.revenue);
-
-    return { labels, data };
-  };
-
-  const topProductsProcessed = processTopProductsData();
-
+  const topP = processTopProducts();
   const topProductsData = {
-    labels: topProductsProcessed.labels,
-    datasets: [
-      {
-        label: 'ยอดขาย (บาท)',
-        data: topProductsProcessed.data,
-        backgroundColor: 'rgba(16, 185, 129, 0.8)',
-        borderColor: 'rgba(16, 185, 129, 1)',
-        borderWidth: 1
-      }
-    ]
+      labels: topP.labels,
+      datasets: [{
+          label: 'ยอดขาย (บาท)',
+          data: topP.data,
+          backgroundColor: '#10b981',
+          borderRadius: 4,
+          barThickness: 20
+      }]
   };
-
   const topProductsOptions = {
+    indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
-    aspectRatio: 2.5,
-    plugins: {
-      legend: {
-        display: false
-      },
-      title: {
-        display: true,
-        text: 'สินค้าขายดีอันดับ 5',
-        font: { size: 11, weight: 'bold' },
-        padding: { bottom: 5 }
-      }
-    },
+    plugins: { legend: { display: false } },
     scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          font: { size: 9 }
-        }
-      },
-      x: {
-        ticks: {
-          font: { size: 9 }
-        }
-      }
+        x: { beginAtZero: true, grid: { borderDash: [2, 4] }, ticks: { font: { size: 10 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11, family: "'Prompt', sans-serif" } } }
     }
   };
+
 
   if (loading) {
-    return (
-      <div className="flex flex-col sm:flex-row justify-center items-center py-6 sm:py-8 gap-2">
-        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-orange-500"></div>
-        <span className="text-xs sm:text-sm text-gray-600">กำลังโหลดข้อมูล...</span>
-      </div>
-    );
+      return (
+          <div className="flex-1 flex flex-col items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
+              <span className="text-slate-500 font-medium">กำลังประมวลผลข้อมูล...</span>
+          </div>
+      );
   }
 
-  // Show message if no data available
-  const hasData = analytics.totalOrders > 0 || analytics.totalRevenue > 0;
+  const StatCard = ({ title, value, subtext, icon, color, bg }) => (
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-start justify-between hover:shadow-md transition-shadow">
+          <div>
+              <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
+              <h3 className="text-2xl font-bold text-slate-800">{value}</h3>
+              <p className={`text-xs mt-1 ${color}`}>{subtext}</p>
+          </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg} ${color}`}>
+              <i className={`fas ${icon} text-lg`}></i>
+          </div>
+      </div>
+  );
 
   return (
-    <div className="space-y-2.5">
-      {/* Header with Time Range Selector */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <h2 className="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-1.5">
-          <i className="fas fa-chart-bar text-orange-500 text-xs"></i>
-          <span>รายงานและสถิติ</span>
-        </h2>
-        <div className="flex gap-1.5">
-          {[
-            { value: '7d', label: '7 วัน' },
-            { value: '30d', label: '30 วัน' },
-            { value: '90d', label: '90 วัน' }
-          ].map(option => (
-            <button
-              key={option.value}
-              onClick={() => setTimeRange(option.value)}
-              className={`px-2 py-1 rounded-md text-xs font-medium transition-colors duration-200 ${
-                timeRange === option.value
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-6">
+       {/* Header Controls */}
+       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+           <div className="flex items-center gap-3">
+               <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                   <i className="fas fa-chart-line text-lg"></i>
+               </div>
+               <div>
+                   <h2 className="text-lg font-bold text-slate-800">Dashboard Overview</h2>
+                   <p className="text-xs text-slate-500">ภาพรวมสถิติของร้านค้า</p>
+               </div>
+           </div>
+           
+           <div className="flex bg-slate-100 p-1 rounded-xl">
+               {['7d', '30d', '90d'].map(range => (
+                   <button
+                        key={range}
+                        onClick={() => setTimeRange(range)}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                            timeRange === range 
+                            ? 'bg-white text-indigo-600 shadow-sm' 
+                            : 'text-slate-500 hover:text-indigo-600'
+                        }`}
+                   >
+                       {range === '7d' ? '7 วันล่าสุด' : range === '30d' ? '30 วันล่าสุด' : '3 เดือน'}
+                   </button>
+               ))}
+           </div>
+       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-2.5 border border-blue-200">
-          <div className="flex items-center justify-between gap-1.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium text-blue-800 truncate">ผู้ใช้ทั้งหมด</p>
-              <p className="text-base sm:text-lg font-bold text-blue-900 mt-0.5">{analytics.totalUsers.toLocaleString()}</p>
-              <p className="text-[9px] text-blue-600 truncate">
-                {analytics.newUsers > 0 ? `+${analytics.newUsers} ใหม่` : 'ไม่มีใหม่'}
-              </p>
-            </div>
-            <i className="fas fa-users text-blue-500 text-sm flex-shrink-0"></i>
-          </div>
-        </div>
+       {/* Stats Grid */}
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           <StatCard 
+                title="ยอดขายรวม" 
+                value={`฿${Math.floor(analytics.totalRevenue).toLocaleString()}`} 
+                subtext={`ในช่วง ${timeRange}`} 
+                icon="fa-wallet" 
+                color="text-emerald-600" 
+                bg="bg-emerald-50" 
+            />
+           <StatCard 
+                title="จำนวนคำสั่งซื้อ" 
+                value={analytics.totalOrders.toLocaleString()} 
+                subtext={`เฉลี่ย ฿${Math.floor(analytics.averageOrderValue).toLocaleString()}/ออเดอร์`} 
+                icon="fa-shopping-bag" 
+                color="text-blue-600" 
+                bg="bg-blue-50" 
+            />
+           <StatCard 
+                title="ผู้ใช้งานทั้งหมด" 
+                value={analytics.totalUsers.toLocaleString()} 
+                subtext={`+${analytics.newUsers} ผู้ใช้ใหม่`} 
+                icon="fa-users" 
+                color="text-indigo-600" 
+                bg="bg-indigo-50" 
+            />
+           <StatCard 
+                title="อัตราการซื้อ" 
+                value={`${analytics.conversionRate.toFixed(1)}%`} 
+                subtext="Conversion Rate" 
+                icon="fa-percentage" 
+                color="text-violet-600" 
+                bg="bg-violet-50" 
+            />
+       </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-2.5 border border-green-200">
-          <div className="flex items-center justify-between gap-1.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium text-green-800 truncate">ยอดขายรวม</p>
-              <p className="text-base sm:text-lg font-bold text-green-900 mt-0.5">฿{Math.floor(analytics.totalRevenue).toLocaleString()}</p>
-              <p className="text-[9px] text-green-600 truncate">
-                {timeRange === '7d' ? '7 วัน' : timeRange === '30d' ? '30 วัน' : '90 วัน'}
-              </p>
-            </div>
-            <i className="fas fa-dollar-sign text-green-500 text-sm flex-shrink-0"></i>
-          </div>
-        </div>
+       {/* Charts Row 1: Sales Trend & Monthly */}
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           <div className="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-sm font-bold text-slate-700 mb-4">แนวโน้มการขาย</h3>
+               <div className="h-64">
+                   <Line data={salesTrendData} options={salesTrendOptions} />
+               </div>
+           </div>
+           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-sm font-bold text-slate-700 mb-4">เปรียบเทียบรายเดือน</h3>
+               <div className="h-64">
+                   <Bar data={monthlySalesData} options={monthlySalesOptions} />
+               </div>
+           </div>
+       </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-2.5 border border-purple-200">
-          <div className="flex items-center justify-between gap-1.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium text-purple-800 truncate">คำสั่งซื้อ</p>
-              <p className="text-base sm:text-lg font-bold text-purple-900 mt-0.5">{analytics.totalOrders.toLocaleString()}</p>
-              <p className="text-[9px] text-purple-600 truncate">
-                {timeRange === '7d' ? '7 วัน' : timeRange === '30d' ? '30 วัน' : '90 วัน'}
-              </p>
-            </div>
-            <i className="fas fa-shopping-cart text-purple-500 text-sm flex-shrink-0"></i>
-          </div>
-        </div>
+       {/* Charts Row 2: Categories, Status, Top Products */}
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-sm font-bold text-slate-700 mb-4">สัดส่วนหมวดหมู่</h3>
+               <div className="h-48 relative">
+                   <Doughnut data={doughnutData} options={{ ...pieOptions, cutout: '70%', plugins: { legend: { display: false } } }} />
+                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                       <span className="text-2xl font-bold text-slate-800">{categoryData.labels.length}</span>
+                       <span className="text-xs text-slate-400">หมวดหมู่</span>
+                   </div>
+               </div>
+               <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                   {categoryData.labels.slice(0,4).map((l, i) => (
+                       <div key={i} className="flex items-center gap-1 text-xs text-slate-600">
+                           <span className="w-2 h-2 rounded-full" style={{ background: categoryData.colors[i] }}></span>{l}
+                       </div>
+                   ))}
+               </div>
+           </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-2.5 border border-orange-200">
-          <div className="flex items-center justify-between gap-1.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium text-orange-800 truncate">ค่าเฉลี่ย/ออเดอร์</p>
-              <p className="text-base sm:text-lg font-bold text-orange-900 mt-0.5">฿{Math.floor(analytics.averageOrderValue).toLocaleString()}</p>
-              <p className="text-[9px] text-orange-600 truncate">เฉลี่ย/ออเดอร์</p>
-            </div>
-            <i className="fas fa-chart-line text-orange-500 text-sm flex-shrink-0"></i>
-          </div>
-        </div>
+           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-sm font-bold text-slate-700 mb-4">สถานะคำสั่งซื้อ</h3>
+               <div className="h-52">
+                    <Pie data={pieData} options={pieOptions} />
+               </div>
+           </div>
 
-        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-2.5 border border-indigo-200">
-          <div className="flex items-center justify-between gap-1.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-medium text-indigo-800 truncate">อัตราการแปลง</p>
-              <p className="text-base sm:text-lg font-bold text-indigo-900 mt-0.5">{analytics.conversionRate.toFixed(1)}%</p>
-              <p className="text-[9px] text-indigo-600 truncate">สัดส่วนผู้ซื้อ</p>
-            </div>
-            <i className="fas fa-percentage text-indigo-500 text-sm flex-shrink-0"></i>
-          </div>
-        </div>
-      </div>
-
-      {/* No Data Message */}
-      {!hasData && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-          <i className="fas fa-exclamation-triangle text-yellow-500 text-xl mb-1.5"></i>
-          <h3 className="text-xs font-semibold text-yellow-800 mb-0.5">ไม่มีข้อมูลการขาย</h3>
-          <p className="text-[10px] text-yellow-700">
-            ยังไม่มีคำสั่งซื้อในช่วงเวลาที่เลือก
-          </p>
-        </div>
-      )}
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5">
-        {/* Sales Trend Chart */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5">
-          <div style={{ height: '200px' }}>
-            <Line data={salesTrendData} options={salesTrendOptions} />
-          </div>
-        </div>
-
-        {/* Monthly Sales Comparison */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5">
-          <div style={{ height: '200px' }}>
-            <Bar data={monthlySalesData} options={monthlySalesOptions} />
-          </div>
-        </div>
-
-        {/* Product Categories */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5">
-          <div style={{ height: '180px' }}>
-            <Doughnut data={categoryData} options={categoryOptions} />
-          </div>
-        </div>
-
-        {/* Order Status */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5">
-          <div style={{ height: '180px' }}>
-            <Pie data={orderStatusData} options={orderStatusOptions} />
-          </div>
-        </div>
-      </div>
-
-      {/* Top Products Chart */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2.5">
-        <div style={{ height: '220px' }}>
-          <Bar data={topProductsData} options={topProductsOptions} />
-        </div>
-      </div>
-
-      {/* Export Section */}
-      <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-3 border border-orange-200">
-        <div className="text-center">
-          <h3 className="text-xs font-semibold text-gray-900 mb-1 flex items-center justify-center gap-1.5">
-            <i className="fas fa-download text-orange-500 text-xs"></i>
-            <span>ส่งออกรายงาน</span>
-          </h3>
-          <p className="text-[10px] text-gray-600 mb-2">ดาวน์โหลดรายงานในรูปแบบต่างๆ</p>
-          <div className="flex flex-wrap justify-center gap-1.5">
-            <button className="px-2.5 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 text-xs font-medium shadow-sm">
-              <i className="fas fa-file-excel mr-1"></i>
-              Excel
-            </button>
-            <button className="px-2.5 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 text-xs font-medium shadow-sm">
-              <i className="fas fa-file-pdf mr-1"></i>
-              PDF
-            </button>
-            <button className="px-2.5 py-1 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors duration-200 text-xs font-medium shadow-sm">
-              <i className="fas fa-file-csv mr-1"></i>
-              CSV
-            </button>
-          </div>
-        </div>
-      </div>
+           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+               <h3 className="text-sm font-bold text-slate-700 mb-4">สินค้าขายดี (Top 5)</h3>
+               <div className="flex-1 h-52">
+                   <Bar data={topProductsData} options={topProductsOptions} />
+               </div>
+           </div>
+       </div>
     </div>
   );
 };

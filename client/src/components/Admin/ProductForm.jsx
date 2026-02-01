@@ -206,37 +206,24 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('📝 Form submit triggered');
-    console.log('📝 Current form state:', productForm);
-    console.log('📝 isSubmitting:', isSubmitting);
-
-    if (isSubmitting) {
-      console.log('⚠️ Already submitting, returning');
-      return;
-    }
+    if (isSubmitting) return;
 
     if (!productForm.title.trim()) {
-      console.log('❌ Validation failed: title is empty');
       toast.error('กรุณากรอกชื่อสินค้า');
       return;
     }
     if (!productForm.price || parseFloat(productForm.price) <= 0) {
-      console.log('❌ Validation failed: price is invalid');
       toast.error('กรุณากรอกราคาที่ถูกต้อง');
       return;
     }
     if (!productForm.quantity || parseInt(productForm.quantity) < 0) {
-      console.log('❌ Validation failed: quantity is invalid');
       toast.error('กรุณากรอกจำนวนที่ถูกต้อง');
       return;
     }
     if (!productForm.categoryId) {
-      console.log('❌ Validation failed: category is not selected');
       toast.error('กรุณาเลือกหมวดหมู่');
       return;
     }
-
-    console.log('✅ All validations passed, proceeding with submission');
 
     try {
       setIsSubmitting(true);
@@ -270,7 +257,6 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
       }
 
       const hasOtherMetadata = metadata.freeShipping !== undefined || (metadata.productSubcategories && metadata.productSubcategories.length > 0);
-
       if (hasOtherMetadata) {
         finalDescription = JSON.stringify(metadata);
       } else if (Object.keys(metadata).length === 1 && metadata.description) {
@@ -284,59 +270,39 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
       formData.append('quantity', productForm.quantity);
       formData.append('categoryId', productForm.categoryId);
 
-      if (productForm.discountPrice) {
-        formData.append('discountPrice', productForm.discountPrice);
-      }
-      if (productForm.discountStartDate) {
-        formData.append('discountStartDate', productForm.discountStartDate);
-      }
-      if (productForm.discountEndDate) {
-        formData.append('discountEndDate', productForm.discountEndDate);
-      }
+      if (productForm.discountPrice) formData.append('discountPrice', productForm.discountPrice);
+      if (productForm.discountStartDate) formData.append('discountStartDate', productForm.discountStartDate);
+      if (productForm.discountEndDate) formData.append('discountEndDate', productForm.discountEndDate);
 
       const validVariants = productForm.variants.filter(v =>
         v && v.name && typeof v.name === 'string' && v.name.trim() !== '' && v.options && Array.isArray(v.options) && v.options.length > 0
       );
-
-      if (validVariants.length > 0) {
-        formData.append('variants', JSON.stringify(validVariants));
-      }
+      if (validVariants.length > 0) formData.append('variants', JSON.stringify(validVariants));
 
       if (selectedImages.length > 0) {
-        selectedImages.forEach((file) => {
-          formData.append('images', file);
-        });
+        selectedImages.forEach((file) => formData.append('images', file));
       }
 
       let finalImageUrls = imageUrls || [];
-      let imagesToDeleteData = [];
-      let remainingImagesData = [];
-
+      
       if (imageUploadRef && typeof imageUploadRef.getFinalImages === 'function') {
         try {
           const imageData = imageUploadRef.getFinalImages();
-          if (imageData && imageData.imageUrls && Array.isArray(imageData.imageUrls) && imageData.imageUrls.length > 0) {
-            finalImageUrls = imageData.imageUrls;
-          }
+          if (imageData?.imageUrls) finalImageUrls = imageData.imageUrls;
+          
           if (editingProduct) {
-            imagesToDeleteData = imageData.imagesToDelete || [];
-            remainingImagesData = imageData.remainingImages || [];
-            formData.append('imagesToDelete', JSON.stringify(imagesToDeleteData));
-            formData.append('remainingImages', JSON.stringify(remainingImagesData));
+             formData.append('imagesToDelete', JSON.stringify(imageData.imagesToDelete || []));
+             formData.append('remainingImages', JSON.stringify(imageData.remainingImages || []));
           }
         } catch (error) {
-          console.warn('Error getting image data from ref:', error);
+          console.warn('Error getting image data:', error);
         }
       } else if (editingProduct) {
         formData.append('imagesToDelete', JSON.stringify([]));
         formData.append('remainingImages', JSON.stringify([]));
       }
 
-      if (finalImageUrls && finalImageUrls.length > 0) {
-        formData.append('imageUrls', JSON.stringify(finalImageUrls));
-      } else if (imageUrls && imageUrls.length > 0) {
-        formData.append('imageUrls', JSON.stringify(imageUrls));
-      }
+      if (finalImageUrls.length > 0) formData.append('imageUrls', JSON.stringify(finalImageUrls));
 
       const config = {
         headers: {
@@ -346,8 +312,7 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
       };
 
       if (editingProduct) {
-        const updateUrl = `${updateEndpointBase}/${editingProduct.id}`;
-        await axios.put(updateUrl, formData, config);
+        await axios.put(`${updateEndpointBase}/${editingProduct.id}`, formData, config);
         toast.success('อัพเดตสินค้าสำเร็จ!');
       } else {
         await axios.post(createEndpoint, formData, config);
@@ -357,156 +322,175 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error(error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด');
+      toast.error(error.response?.data?.message || 'เกิดข้อผิดพลาด');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#f5f5f5] rounded-sm shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-              <i className={`fas ${editingProduct ? 'fa-edit text-[#ee4d2d]' : 'fa-plus text-[#ee4d2d]'}`}></i>
-              {editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่'}
-            </h2>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full flex items-center justify-center transition-colors"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-800">
+            {editingProduct ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่'}
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <i className="fas fa-times text-lg"></i>
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Basic Information */}
-          <div className="bg-white rounded-sm shadow-sm p-4">
-            <h3 className="font-medium text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-              <i className="fas fa-info-circle text-[#ee4d2d]"></i>
-              ข้อมูลพื้นฐาน
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1.5">
-                  ชื่อสินค้า <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={productForm.title}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d]"
-                  placeholder="กรอกชื่อสินค้า"
-                  required
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-6">
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">รูปภาพสินค้า</label>
+            <ProductImageUpload
+              existingImages={editingProduct?.images || []}
+              onImagesSelect={handleImagesSelect}
+              onImageUrlsSelect={handleImageUrlsSelect}
+              ref={setImageUploadRef}
+            />
+          </div>
 
-              <div>
-                <label className="block text-sm text-gray-600 mb-1.5">
-                  หมวดหมู่ <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="categoryId"
-                  value={productForm.categoryId}
-                  onChange={handleInputChange}
-                  disabled={categoriesLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] bg-white"
-                  required
-                >
-                  <option value="">
-                    {categoriesLoading ? 'กำลังโหลด...' : 'เลือกหมวดหมู่'}
-                  </option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ชื่อสินค้า <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={productForm.title}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="กรอกชื่อสินค้า"
+                required
+              />
+            </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                หมวดหมู่ <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="categoryId"
+                value={productForm.categoryId}
+                onChange={handleInputChange}
+                disabled={categoriesLoading}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                required
+              >
+                <option value="">{categoriesLoading ? 'กำลังโหลด...' : 'เลือกหมวดหมู่'}</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ราคา (บาท) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={productForm.price}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                จำนวนสต็อก <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={productForm.quantity}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="0"
+                min="0"
+                required
+              />
+            </div>
+
+            </div>
+
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+              <div className="md:col-span-3">
+                 <h3 className="text-sm font-medium text-gray-900 mb-2">ตั้งค่าส่วนลด (Option)</h3>
+              </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1.5">
-                  ราคา (บาท) <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ราคาลดเหลือ</label>
                 <input
                   type="number"
-                  name="price"
-                  value={productForm.price}
+                  name="discountPrice"
+                  value={productForm.discountPrice}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                  required
                 />
               </div>
-
               <div>
-                <label className="block text-sm text-gray-600 mb-1.5">
-                  จำนวน <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มลด</label>
                 <input
-                  type="number"
-                  name="quantity"
-                  value={productForm.quantity}
+                  type="datetime-local"
+                  name="discountStartDate"
+                  value={productForm.discountStartDate}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d]"
-                  placeholder="0"
-                  min="0"
-                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุดลด</label>
+                <input
+                  type="datetime-local"
+                  name="discountEndDate"
+                  value={productForm.discountEndDate}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
             </div>
-          </div>
+
 
           {/* Subcategories */}
           {productForm.categoryId && availableSubcategories.length > 0 && (
-            <div className="bg-white rounded-sm shadow-sm p-4">
-              <h3 className="font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2">
-                <i className="fas fa-tags text-purple-500"></i>
-                หมวดหมู่ย่อย
-                <span className="text-xs text-gray-400 font-normal">(เลือกได้สูงสุด 3 อย่าง)</span>
-              </h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">หมวดหมู่ย่อย (เลือกได้สูงสุด 3)</label>
               <div className="flex flex-wrap gap-2">
                 {availableSubcategories.map((subcat) => {
-                  const isSelected = productForm.productSubcategories && Array.isArray(productForm.productSubcategories) && productForm.productSubcategories.includes(subcat);
+                  const isSelected = productForm.productSubcategories?.includes(subcat);
                   return (
                     <label
                       key={subcat}
-                      className={`px-3 py-1.5 rounded-sm text-sm cursor-pointer transition-all border ${
+                      className={`px-3 py-1.5 rounded-lg text-sm cursor-pointer border transition-colors ${
                         isSelected
-                          ? 'bg-[#ee4d2d] text-white border-[#ee4d2d]'
-                          : 'bg-white text-gray-600 border-gray-300 hover:border-[#ee4d2d] hover:text-[#ee4d2d]'
+                          ? 'bg-orange-50 text-orange-600 border-orange-300'
+                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-orange-300'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={(e) => {
-                          e.stopPropagation();
-                          const currentSubcategories = Array.isArray(productForm.productSubcategories) 
-                            ? productForm.productSubcategories : [];
-                          
+                          const currentSubcategories = [...(productForm.productSubcategories || [])];
                           if (e.target.checked) {
                             if (currentSubcategories.length < 3) {
-                              setProductForm(prev => ({
-                                ...prev,
-                                productSubcategories: [...currentSubcategories, subcat]
-                              }));
+                              setProductForm(prev => ({ ...prev, productSubcategories: [...currentSubcategories, subcat] }));
                             } else {
                               toast.warning('เลือกได้สูงสุด 3 หมวดหมู่');
-                              e.target.checked = false;
                             }
                           } else {
-                            setProductForm(prev => ({
-                              ...prev,
-                              productSubcategories: currentSubcategories.filter(s => s !== subcat)
-                            }));
+                            setProductForm(prev => ({ ...prev, productSubcategories: currentSubcategories.filter(s => s !== subcat) }));
                           }
                         }}
                         className="sr-only"
@@ -520,358 +504,130 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
             </div>
           )}
 
-          {/* Special Features */}
-          <div className="bg-white rounded-sm shadow-sm p-4">
-            <h3 className="font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2">
-              <i className="fas fa-star text-yellow-500"></i>
-              คุณสมบัติพิเศษ
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label className={`flex items-center gap-3 p-3 rounded-sm border cursor-pointer transition-all ${
-                productForm.freeShipping ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-green-300'
-              }`}>
-                <input
-                  type="checkbox"
-                  name="freeShipping"
-                  checked={productForm.freeShipping}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-500"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <i className="fas fa-truck text-green-500"></i>
-                    <span className="font-medium text-gray-800 text-sm">ส่งฟรี</span>
-                  </div>
-                  <p className="text-xs text-gray-500">แสดง badge "ส่งฟรี" ในหน้าสินค้า</p>
-                </div>
-              </label>
-
-              <div className={`flex items-center gap-3 p-3 rounded-sm border ${
-                productForm.discountPrice && productForm.discountStartDate && productForm.discountEndDate 
-                  ? 'border-orange-400 bg-orange-50' : 'border-gray-200'
-              }`}>
-                <div className="w-4 h-4 flex items-center justify-center">
-                  {productForm.discountPrice && productForm.discountStartDate && productForm.discountEndDate 
-                    ? <i className="fas fa-check-circle text-orange-500"></i>
-                    : <i className="fas fa-circle text-gray-300 text-xs"></i>
-                  }
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <i className="fas fa-tag text-orange-500"></i>
-                    <span className="font-medium text-gray-800 text-sm">ลดราคา</span>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {productForm.discountPrice && productForm.discountStartDate && productForm.discountEndDate 
-                      ? 'เปิดใช้งานแล้ว' : 'กรอกข้อมูลด้านล่างเพื่อเปิดใช้'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Discount Section */}
-          <div className="bg-white rounded-sm shadow-sm p-4">
-            <h3 className="font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2">
-              <i className="fas fa-percent text-[#ee4d2d]"></i>
-              การลดราคา
-              <span className="text-xs text-gray-400 font-normal">(ไม่บังคับ)</span>
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1.5">ราคาลดพิเศษ (บาท)</label>
-                <input
-                  type="number"
-                  name="discountPrice"
-                  value={productForm.discountPrice}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1.5">วันที่เริ่ม</label>
-                <input
-                  type="datetime-local"
-                  name="discountStartDate"
-                  value={productForm.discountStartDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1.5">วันที่สิ้นสุด</label>
-                <input
-                  type="datetime-local"
-                  name="discountEndDate"
-                  value={productForm.discountEndDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
-                />
-              </div>
-            </div>
-            {productForm.discountPrice && productForm.discountStartDate && productForm.discountEndDate && productForm.price && (
-              <div className="mt-3 p-3 bg-orange-50 rounded-sm border border-orange-200 text-sm">
-                <i className="fas fa-info-circle text-orange-500 mr-2"></i>
-                ลดจาก <span className="font-medium">฿{parseFloat(productForm.price || 0).toLocaleString()}</span> เหลือ 
-                <span className="font-bold text-[#ee4d2d] ml-1">฿{parseFloat(productForm.discountPrice).toLocaleString()}</span>
-                <span className="text-gray-500 ml-2">
-                  ({Math.round(((productForm.price - productForm.discountPrice) / productForm.price) * 100)}% off)
-                </span>
-              </div>
-            )}
-          </div>
-
           {/* Description */}
-          <div className="bg-white rounded-sm shadow-sm p-4">
-            <h3 className="font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2">
-              <i className="fas fa-align-left text-blue-500"></i>
-              รายละเอียดสินค้า
-            </h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียดสินค้า</label>
             <textarea
               name="description"
               value={productForm.description}
               onChange={handleInputChange}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] focus:ring-1 focus:ring-[#ee4d2d] resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
               placeholder="กรอกรายละเอียดสินค้า..."
             />
           </div>
 
-          {/* Product Variants with Pricing */}
-          <div className="bg-white rounded-sm shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-              <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                <i className="fas fa-palette text-purple-500"></i>
-                ตัวเลือกสินค้า
-                <span className="text-xs text-gray-400 font-normal">(สี, ขนาด พร้อมราคา)</span>
-              </h3>
-              {productForm.variants.length > 0 && (
-                <span className="px-2 py-0.5 bg-purple-100 text-purple-600 rounded text-xs font-medium">
-                  {productForm.variants.length} ตัวเลือก
-                </span>
-              )}
+          {/* Variants */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">ตัวเลือกสินค้า</label>
+              <button
+                type="button"
+                onClick={() => setProductForm(prev => ({ ...prev, variants: [...prev.variants, { name: '', options: [] }] }))}
+                className="text-sm text-orange-600 hover:text-orange-700"
+              >
+                <i className="fas fa-plus mr-1"></i> เพิ่มตัวเลือก
+              </button>
             </div>
-
+            
             {productForm.variants.length === 0 ? (
-              <div className="text-center py-6 text-gray-400">
-                <i className="fas fa-palette text-3xl mb-2"></i>
-                <p className="text-sm">ยังไม่มีตัวเลือกสินค้า</p>
-                <p className="text-xs mt-1">เพิ่มตัวเลือกเพื่อกำหนดราคาแยกตามตัวเลือก</p>
+              <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                <p className="text-gray-500 text-sm">ยังไม่มีตัวเลือกสินค้า</p>
               </div>
             ) : (
-              <div className="space-y-4 mb-4">
-                {productForm.variants.map((variant, variantIndex) => (
-                  <div key={variantIndex} className="p-4 bg-gray-50 rounded-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
+              <div className="space-y-3">
+                {productForm.variants.map((variant, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-3">
                       <input
                         type="text"
                         value={variant.name}
                         onChange={(e) => {
                           const newVariants = [...productForm.variants];
-                          newVariants[variantIndex].name = e.target.value;
+                          newVariants[index].name = e.target.value;
                           setProductForm(prev => ({ ...prev, variants: newVariants }));
                         }}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] font-medium"
-                        placeholder="ชื่อตัวเลือก (เช่น ขนาดจอ, สี)"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        placeholder="ชื่อกลุ่มตัวเลือก (เช่น สี, ไซส์)"
                       />
                       <button
                         type="button"
-                        onClick={() => {
-                          const newVariants = productForm.variants.filter((_, i) => i !== variantIndex);
-                          setProductForm(prev => ({ ...prev, variants: newVariants }));
-                        }}
-                        className="ml-2 px-3 py-2 text-red-500 hover:bg-red-50 rounded-sm text-sm"
+                        onClick={() => setProductForm(prev => ({ ...prev, variants: prev.variants.filter((_, i) => i !== index) }))}
+                        className="text-gray-400 hover:text-red-500 p-2"
                       >
                         <i className="fas fa-trash"></i>
                       </button>
                     </div>
                     
-                    {/* Add new option with price */}
-                    <div className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        id={`option-name-${variantIndex}`}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
-                        placeholder="ชื่อตัวเลือก (เช่น 19 นิ้ว)"
-                      />
-                      <input
-                        type="number"
-                        id={`option-price-${variantIndex}`}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d]"
-                        placeholder="ราคา (บาท)"
-                        min="0"
-                        step="1"
-                      />
+                    <div className="flex gap-2">
+                      <input type="text" id={`opt-name-${index}`} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="ชื่อตัวเลือก" />
+                      <input type="number" id={`opt-price-${index}`} className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="ราคาเพิ่ม" />
                       <button
                         type="button"
                         onClick={() => {
-                          const nameInput = document.getElementById(`option-name-${variantIndex}`);
-                          const priceInput = document.getElementById(`option-price-${variantIndex}`);
-                          const optionName = nameInput.value.trim();
-                          const optionPrice = parseFloat(priceInput.value) || 0;
-                          
-                          if (optionName) {
-                            // Check if option name already exists
-                            const existingOption = variant.options.find(opt => 
-                              (typeof opt === 'object' ? opt.name : opt) === optionName
-                            );
-                            
-                            if (!existingOption) {
-                              const newVariants = [...productForm.variants];
-                              // Ensure options is always array of objects
-                              const newOption = { name: optionName, price: optionPrice };
-                              newVariants[variantIndex].options = [...newVariants[variantIndex].options, newOption];
-                              setProductForm(prev => ({ ...prev, variants: newVariants }));
-                              nameInput.value = '';
-                              priceInput.value = '';
-                            }
+                          const nameEl = document.getElementById(`opt-name-${index}`);
+                          const priceEl = document.getElementById(`opt-price-${index}`);
+                          if (nameEl.value.trim()) {
+                            const newVariants = [...productForm.variants];
+                            newVariants[index].options.push({ name: nameEl.value, price: Number(priceEl.value) || 0 });
+                            setProductForm(prev => ({ ...prev, variants: newVariants }));
+                            nameEl.value = ''; priceEl.value = '';
                           }
                         }}
-                        className="px-4 py-2 bg-[#ee4d2d] text-white rounded-sm text-sm hover:bg-[#d73211] transition-colors flex items-center gap-1"
+                        className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600"
                       >
-                        <i className="fas fa-plus"></i>
                         เพิ่ม
                       </button>
                     </div>
-                    
-                    {/* Options list with prices */}
-                    {variant.options.length > 0 ? (
-                      <div className="space-y-2">
-                        <div className="text-xs text-gray-500 mb-2">รายการตัวเลือก:</div>
-                        {variant.options.map((option, optIndex) => {
-                          // Support both old format (string) and new format (object)
-                          const optionName = typeof option === 'object' ? option.name : option;
-                          const optionPrice = typeof option === 'object' ? option.price : 0;
-                          
-                          return (
-                            <div
-                              key={optIndex}
-                              className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-sm"
-                            >
-                              <span className="flex-1 text-sm text-gray-700">
-                                <i className="fas fa-tag text-purple-400 mr-2"></i>
-                                {optionName}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm text-[#ee4d2d] font-medium">
-                                  ฿{optionPrice.toLocaleString()}
-                                </span>
-                                <input
-                                  type="number"
-                                  value={optionPrice}
-                                  onChange={(e) => {
-                                    const newPrice = parseFloat(e.target.value) || 0;
-                                    const newVariants = [...productForm.variants];
-                                    // Update to object format if it was string
-                                    newVariants[variantIndex].options[optIndex] = {
-                                      name: optionName,
-                                      price: newPrice
-                                    };
-                                    setProductForm(prev => ({ ...prev, variants: newVariants }));
-                                  }}
-                                  className="w-24 px-2 py-1 border border-gray-300 rounded-sm text-sm focus:outline-none focus:border-[#ee4d2d] text-right"
-                                  placeholder="ราคา"
-                                  min="0"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newVariants = [...productForm.variants];
-                                    newVariants[variantIndex].options = newVariants[variantIndex].options.filter((_, i) => i !== optIndex);
-                                    setProductForm(prev => ({ ...prev, variants: newVariants }));
-                                  }}
-                                  className="p-1 text-red-500 hover:bg-red-50 rounded-sm"
-                                >
-                                  <i className="fas fa-times"></i>
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-3 text-gray-400 text-xs border border-dashed border-gray-300 rounded-sm">
-                        ยังไม่มีตัวเลือก - กรอกชื่อและราคาด้านบนแล้วกดเพิ่ม
-                      </div>
-                    )}
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {variant.options.map((opt, optIdx) => (
+                        <div key={optIdx} className="flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 rounded text-sm">
+                          <span>{opt.name || opt}</span>
+                          {typeof opt === 'object' && opt.price > 0 && (
+                            <span className="text-orange-600 text-xs">+฿{opt.price}</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newVariants = [...productForm.variants];
+                              newVariants[index].options = newVariants[index].options.filter((_, i) => i !== optIdx);
+                              setProductForm(prev => ({ ...prev, variants: newVariants }));
+                            }}
+                            className="text-gray-400 hover:text-red-500 ml-1"
+                          >
+                            <i className="fas fa-times text-xs"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
             )}
-
-            <button
-              type="button"
-              onClick={() => {
-                setProductForm(prev => ({
-                  ...prev,
-                  variants: [...prev.variants, { name: '', options: [] }]
-                }));
-              }}
-              className="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded-sm hover:border-[#ee4d2d] hover:text-[#ee4d2d] transition-colors text-sm flex items-center justify-center gap-2"
-            >
-              <i className="fas fa-plus"></i>
-              เพิ่มตัวเลือกสินค้า (พร้อมราคา)
-            </button>
-          </div>
-
-          {/* Image Upload */}
-          <div className="bg-white rounded-sm shadow-sm p-4">
-            <h3 className="font-medium text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center gap-2">
-              <i className="fas fa-images text-[#ee4d2d]"></i>
-              รูปภาพสินค้า
-            </h3>
-            <ProductImageUpload 
-              onImagesSelect={handleImagesSelect}
-              onImageUrlsSelect={handleImageUrlsSelect}
-              existingImages={editingProduct?.images || []}
-              ref={setImageUploadRef}
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="bg-white rounded-sm shadow-sm p-4 flex items-center justify-end gap-3 sticky bottom-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-600 rounded-sm hover:bg-gray-50 transition-colors text-sm"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={(e) => {
-                console.log('🔘 Submit button clicked!');
-                handleSubmit(e);
-              }}
-              className={`px-6 py-2 rounded-sm text-sm font-medium transition-all ${
-                isSubmitting
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#ee4d2d] text-white hover:bg-[#d73211]'
-              }`}
-            >
-              {isSubmitting ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  กำลังดำเนินการ...
-                </>
-              ) : editingProduct ? (
-                <>
-                  <i className="fas fa-save mr-2"></i>
-                  บันทึกการแก้ไข
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-plus mr-2"></i>
-                  เพิ่มสินค้า
-                </>
-              )}
-            </button>
           </div>
         </form>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm font-medium"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className={`px-6 py-2 text-white rounded-lg text-sm font-medium ${
+              isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+            }`}
+          >
+            {isSubmitting && <i className="fas fa-spinner fa-spin mr-2"></i>}
+            {editingProduct ? 'บันทึก' : 'เพิ่มสินค้า'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -408,31 +408,41 @@ const Orders = () => {
                                 </div>
                               </div>
 
-                              {/* Review Button (for delivered orders) */}
+                              {/* Review Action */}
                               {isDelivered && (
                                 <div className="mt-3 pt-3 border-t border-gray-100">
                                   <div className="flex items-center justify-end gap-2">
-                                    <button
-                                      onClick={() =>
-                                        setOpenReviewItemId(
+                                    {item.reviews && item.reviews.length > 0 ? (
+                                      <Link
+                                        to={`/product/${item.product?.id}#reviews`}
+                                        className="px-3 py-1.5 rounded-sm text-xs font-medium bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 flex items-center transition-colors"
+                                      >
+                                        <i className="fas fa-eye mr-2"></i>
+                                        ดูรีวิวสินค้า
+                                      </Link>
+                                    ) : (
+                                      <button
+                                        onClick={() =>
+                                          setOpenReviewItemId(
+                                            openReviewItemId === item.id
+                                              ? null
+                                              : item.id,
+                                          )
+                                        }
+                                        className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors ${
                                           openReviewItemId === item.id
-                                            ? null
-                                            : item.id,
-                                        )
-                                      }
-                                      className={`px-3 py-1.5 rounded-sm text-xs font-medium transition-colors ${
-                                        openReviewItemId === item.id
-                                          ? "bg-gray-100 text-gray-600"
-                                          : "bg-[#ee4d2d] text-white hover:bg-[#d73211]"
-                                      }`}
-                                    >
-                                      <i
-                                        className={`fas ${openReviewItemId === item.id ? "fa-times" : "fa-star"} mr-1`}
-                                      ></i>
-                                      {openReviewItemId === item.id
-                                        ? "ปิด"
-                                        : "ให้คะแนน"}
-                                    </button>
+                                            ? "bg-gray-100 text-gray-600"
+                                            : "bg-[#ee4d2d] text-white hover:bg-[#d73211]"
+                                        }`}
+                                      >
+                                        <i
+                                          className={`fas ${openReviewItemId === item.id ? "fa-times" : "fa-star"} mr-1`}
+                                        ></i>
+                                        {openReviewItemId === item.id
+                                          ? "ปิด"
+                                          : "ให้คะแนน"}
+                                      </button>
+                                    )}
                                   </div>
 
                                   {/* Review Form */}
