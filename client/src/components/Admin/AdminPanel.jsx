@@ -11,6 +11,8 @@ import StoreApproval from './StoreApproval';
 import CategoryManagement from './CategoryManagement';
 import UserManagement from './UserManagement';
 import LogoutModal from '../Common/LogoutModal';
+import BannerManagement from './BannerManagement';
+import SiteSettings from './SiteSettings';
 
 const AdminPanel = () => {
   const { logout, user } = useAuth();
@@ -30,9 +32,11 @@ const AdminPanel = () => {
     { id: 'store_approval', label: 'อนุมัติร้านค้า', icon: 'fas fa-store' },
     { id: 'products', label: 'สินค้า', icon: 'fas fa-box' },
     { id: 'categories', label: 'หมวดหมู่', icon: 'fas fa-folder' },
+    { id: 'banners', label: 'แบนเนอร์', icon: 'fas fa-images' },
     { id: 'orders', label: 'คำสั่งซื้อ', icon: 'fas fa-shopping-cart' },
     { id: 'payments', label: 'การชำระเงิน', icon: 'fas fa-credit-card' },
-    { id: 'test', label: 'ทดสอบระบบ', icon: 'fas fa-cog' }
+    { id: 'settings', label: 'ตั้งค่าเว็บไซต์', icon: 'fas fa-cog' },
+    // { id: 'test', label: 'ทดสอบระบบ', icon: 'fas fa-vial' }
   ];
 
   const renderContent = () => {
@@ -42,8 +46,10 @@ const AdminPanel = () => {
       case 'products': return <ProductManagement />;
       case 'categories': return <CategoryManagement />;
       case 'orders': return <OrderManagement />;
+      case 'banners': return <BannerManagement />;
       case 'analytics': return <Analytics />;
       case 'payments': return <PaymentApproval />;
+      case 'settings': return <SiteSettings />;
       case 'test': return <TestAdminFeatures />;
       default: return <Analytics />;
     }
@@ -162,7 +168,7 @@ const AdminPanel = () => {
         </header>
 
         {/* Content */}
-        <div className="p-4 lg:p-6">
+        <div className="p-2 lg:p-4">
           <ErrorBoundary>
             {renderContent()}
           </ErrorBoundary>

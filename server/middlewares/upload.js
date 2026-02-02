@@ -279,20 +279,95 @@ const deleteFile = async (publicId) => {
     return false;
 };
 
+// ฟังก์ชันบันทึกไฟล์ลงเครื่อง (Local)
+const saveToLocal = async (buffer, originalName, folder) => {
+    const uploadDir = path.join(__dirname, '../uploads', folder);
+    
+    // สร้างโฟลเดอร์ถ้ายังไม่มี
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filename = `${Date.now()}-${originalName.replace(/\s+/g, '-')}`;
+    const filepath = path.join(uploadDir, filename);
+
+    return new Promise((resolve, reject) => {
+        fs.writeFile(filepath, buffer, (err) => {
+            if (err) reject(err);
+            else resolve({
+                url: `/uploads/${folder}/${filename}`, // URL สำหรับเรียกใช้งาน
+                public_id: null // Local file ไม่มี public_id
+            });
+        });
+    });
+};
+
 // ฟังก์ชันลบไฟล์จาก Cloudinary โดยใช้ URL
 const deleteFileByUrl = async (url) => {
+    // ถ้าเป็นรูป Local (ขึ้นต้นด้วย /uploads) ไม่ต้องทำอะไรกับ Cloudinary
+    if (url && url.startsWith('/uploads')) {
+        // TODO: อาจจะเพิ่มลบไฟล์ Local ด้วยถ้าต้องการ
+        return true;
+    }
+
     const publicId = extractPublicIdFromUrl(url);
     if (!publicId) {
-        console.warn(`⚠️ ไม่สามารถดึง public_id จาก URL: ${url}`);
+        // console.warn(`⚠️ ไม่สามารถดึง public_id จาก URL: ${url}`);
         return false;
     }
     return await deleteFile(publicId);
+};
+
+// Middleware สำหรับอัพโหลดรูปภาพแบนเนอร์
+const uploadBannerImage = async (req, res, next) => {
+    try {
+        const multerMiddleware = upload.single('image');
+        
+        multerMiddleware(req, res, async (err) => {
+            if (err) return handleUploadError(err, req, res, next);
+            
+            if (req.file) {
+                try {
+                    // ตรวจสอบว่าตั้งค่า Cloudinary หรือยัง
+                    const isCloudinaryConfigured = process.env.CLOUDINARY_API_KEY && 
+                                                   process.env.CLOUDINARY_API_KEY !== "your_api_key";
+
+                    let result;
+                    if (isCloudinaryConfigured) {
+                        result = await uploadToCloudinary(req.file.buffer, 'banners');
+                        console.log(`✅ อัพโหลดรูปภาพแบนเนอร์ไปยัง Cloudinary สำเร็จ: ${result.secure_url}`);
+                    } else {
+                        // ถ้ายังไม่ตั้งค่า ให้เก็บลง Local แทน
+                        result = await saveToLocal(req.file.buffer, req.file.originalname, 'banners');
+                        console.log(`✅ บันทึกรูปภาพแบนเนอร์ลง Local สำเร็จ: ${result.url}`);
+                    }
+                    
+                    req.file.cloudinary = result; // เก็บผลลัพธ์ไว้ (อาจมีโครงสร้างต่างกันเล็กน้อย)
+                    req.file.url = result.url || result.secure_url;
+                    req.file.public_id = result.public_id;
+                    
+                    next();
+                } catch (uploadError) {
+                    console.error('❌ เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ:', uploadError);
+                    return res.status(500).json({
+                        message: 'เกิดข้อผิดพลาดในการอัพโหลดรูปภาพ',
+                        error: 'UPLOAD_ERROR'
+                    });
+                }
+            } else {
+                next();
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 module.exports = {
     uploadProductImages,
     uploadCategoryImage,
     uploadProfileImage,
+    uploadBannerImage,
     handleUploadError,
     deleteFile,
     deleteFileByUrl,

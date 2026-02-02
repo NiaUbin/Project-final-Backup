@@ -139,7 +139,7 @@ const Analytics = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top', labels: { font: { family: "'Prompt', sans-serif" }, usePointStyle: true, boxWidth: 6 } },
+      legend: { position: 'top', labels: { font: { size: 10, family: "'Prompt', sans-serif" }, usePointStyle: true, boxWidth: 6 } },
       tooltip: { 
           backgroundColor: '#1e293b', 
           titleFont: { family: "'Prompt', sans-serif" }, 
@@ -149,8 +149,8 @@ const Analytics = () => {
       }
     },
     scales: {
-      y: { type: 'linear', display: true, position: 'left', grid: { borderDash: [2, 4], color: '#f1f5f9' }, ticks: { font: { family: "'Prompt', sans-serif" } } },
-      y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { family: "'Prompt', sans-serif" } } },
+      y: { type: 'linear', display: true, position: 'left', grid: { borderDash: [2, 4], color: '#f1f5f9' }, ticks: { font: { size: 10, family: "'Prompt', sans-serif" } } },
+      y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10, family: "'Prompt', sans-serif" } } },
       x: { grid: { display: false }, ticks: { font: { size: 10, family: "'Prompt', sans-serif" }, maxTicksLimit: 7 } }
     },
     interaction: {
@@ -189,7 +189,7 @@ const Analytics = () => {
      responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top', labels: { font: { family: "'Prompt', sans-serif" }, usePointStyle: true, boxWidth: 6 } }
+      legend: { position: 'top', labels: { font: { size: 10, family: "'Prompt', sans-serif" }, usePointStyle: true, boxWidth: 6 } }
     },
     scales: {
         y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#f1f5f9' }, ticks: { font: { family: "'Prompt', sans-serif", size: 10 } } },
@@ -293,29 +293,29 @@ const Analytics = () => {
   }
 
   const StatCard = ({ title, value, subtext, icon, color, bg }) => (
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-start justify-between hover:shadow-md transition-shadow">
+      <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex items-start justify-between hover:shadow-md transition-shadow">
           <div>
-              <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">{title}</p>
-              <h3 className="text-2xl font-bold text-slate-800">{value}</h3>
-              <p className={`text-xs mt-1 ${color}`}>{subtext}</p>
+              <p className="text-slate-500 text-[10px] font-medium uppercase tracking-wider mb-1">{title}</p>
+              <h3 className="text-xl font-bold text-slate-800">{value}</h3>
+              <p className={`text-[10px] mt-1 ${color}`}>{subtext}</p>
           </div>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg} ${color}`}>
-              <i className={`fas ${icon} text-lg`}></i>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${bg} ${color}`}>
+              <i className={`fas ${icon} text-sm`}></i>
           </div>
       </div>
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
        {/* Header Controls */}
-       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
            <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                   <i className="fas fa-chart-line text-lg"></i>
+               <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                   <i className="fas fa-chart-line text-sm"></i>
                </div>
                <div>
-                   <h2 className="text-lg font-bold text-slate-800">Dashboard Overview</h2>
-                   <p className="text-xs text-slate-500">ภาพรวมสถิติของร้านค้า</p>
+                   <h2 className="text-base font-bold text-slate-800">Dashboard Overview</h2>
+                   <p className="text-[10px] text-slate-500">ภาพรวมสถิติของร้านค้า</p>
                </div>
            </div>
            
@@ -324,7 +324,7 @@ const Analytics = () => {
                    <button
                         key={range}
                         onClick={() => setTimeRange(range)}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        className={`px-3 py-1 rounded-lg text-[10px] font-semibold transition-all ${
                             timeRange === range 
                             ? 'bg-white text-indigo-600 shadow-sm' 
                             : 'text-slate-500 hover:text-indigo-600'
@@ -337,7 +337,7 @@ const Analytics = () => {
        </div>
 
        {/* Stats Grid */}
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
            <StatCard 
                 title="ยอดขายรวม" 
                 value={`฿${Math.floor(analytics.totalRevenue).toLocaleString()}`} 
@@ -373,51 +373,51 @@ const Analytics = () => {
        </div>
 
        {/* Charts Row 1: Sales Trend & Monthly */}
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-           <div className="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-               <h3 className="text-sm font-bold text-slate-700 mb-4">แนวโน้มการขาย</h3>
-               <div className="h-64">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+           <div className="lg:col-span-2 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-xs font-bold text-slate-700 mb-2">แนวโน้มการขาย</h3>
+               <div className="h-44">
                    <Line data={salesTrendData} options={salesTrendOptions} />
                </div>
            </div>
-           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-               <h3 className="text-sm font-bold text-slate-700 mb-4">เปรียบเทียบรายเดือน</h3>
-               <div className="h-64">
+           <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-xs font-bold text-slate-700 mb-2">เปรียบเทียบรายเดือน</h3>
+               <div className="h-44">
                    <Bar data={monthlySalesData} options={monthlySalesOptions} />
                </div>
            </div>
        </div>
 
        {/* Charts Row 2: Categories, Status, Top Products */}
-       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-               <h3 className="text-sm font-bold text-slate-700 mb-4">สัดส่วนหมวดหมู่</h3>
-               <div className="h-48 relative">
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+           <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-xs font-bold text-slate-700 mb-2">สัดส่วนหมวดหมู่</h3>
+               <div className="h-32 relative">
                    <Doughnut data={doughnutData} options={{ ...pieOptions, cutout: '70%', plugins: { legend: { display: false } } }} />
                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                       <span className="text-2xl font-bold text-slate-800">{categoryData.labels.length}</span>
-                       <span className="text-xs text-slate-400">หมวดหมู่</span>
+                       <span className="text-xl font-bold text-slate-800">{categoryData.labels.length}</span>
+                       <span className="text-[10px] text-slate-400">หมวดหมู่</span>
                    </div>
                </div>
-               <div className="mt-4 flex flex-wrap gap-2 justify-center">
+               <div className="mt-2 flex flex-wrap gap-2 justify-center">
                    {categoryData.labels.slice(0,4).map((l, i) => (
-                       <div key={i} className="flex items-center gap-1 text-xs text-slate-600">
-                           <span className="w-2 h-2 rounded-full" style={{ background: categoryData.colors[i] }}></span>{l}
+                       <div key={i} className="flex items-center gap-1 text-[10px] text-slate-600">
+                           <span className="w-1.5 h-1.5 rounded-full" style={{ background: categoryData.colors[i] }}></span>{l}
                        </div>
                    ))}
                </div>
            </div>
 
-           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-               <h3 className="text-sm font-bold text-slate-700 mb-4">สถานะคำสั่งซื้อ</h3>
-               <div className="h-52">
+           <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+               <h3 className="text-xs font-bold text-slate-700 mb-2">สถานะคำสั่งซื้อ</h3>
+               <div className="h-40">
                     <Pie data={pieData} options={pieOptions} />
                </div>
            </div>
 
-           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-               <h3 className="text-sm font-bold text-slate-700 mb-4">สินค้าขายดี (Top 5)</h3>
-               <div className="flex-1 h-52">
+           <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+               <h3 className="text-xs font-bold text-slate-700 mb-2">สินค้าขายดี (Top 5)</h3>
+               <div className="flex-1 h-40">
                    <Bar data={topProductsData} options={topProductsOptions} />
                </div>
            </div>

@@ -11,7 +11,6 @@ import {
   isProductOnDiscount,
   getCurrentPrice,
   getDiscountPercentage,
-  getRemainingDiscountTime,
 } from "../../utils/productDiscount";
 
 const UserDashboard = ({ user, stats, loading }) => {
@@ -36,12 +35,14 @@ const UserDashboard = ({ user, stats, loading }) => {
   const [apiError, setApiError] = useState(null);
   const [lowStockPage, setLowStockPage] = useState(0);
   const itemsPerPage = 6;
+  const [banners, setBanners] = useState([]);
 
   useEffect(() => {
     loadFeaturedProducts();
     loadDiscountProducts();
     loadCategories();
     loadAllProducts();
+    loadBanners();
   }, []);
 
   useEffect(() => {
@@ -195,25 +196,30 @@ const UserDashboard = ({ user, stats, loading }) => {
     }
   };
 
-  const handleAddToCart = async (product) => {
-    if (!authUser) {
-      setSelectedProductTitle(product.title);
-      setShowLoginPopup(true);
-      return;
-    }
-    if (product.quantity < 1) {
-      setOutOfStockProductTitle(product.title);
-      setShowOutOfStockAlert(true);
-      return;
-    }
-    await addToCart(product.id, 1, getCurrentPrice(product), {
-      id: product.id,
-      title: product.title,
-      images: product.images || [],
-    });
+
+
+  const loadBanners = async () => {
+      try {
+          const { data } = await axios.get('/api/config/banners');
+          if (Array.isArray(data) && data.length > 0) {
+              setBanners(data);
+          }
+      } catch (err) {
+          console.log("No dynamic banners found, using defaults");
+      }
   };
 
-
+  const getBanner = (pos) => {
+      const found = banners.find(b => b.position === pos && b.status);
+      if (found) return found;
+      
+      // Defaults
+      if (pos === 'main') return { image: '/000000.jpg', link: '/products', title: 'ช้อปปิ้งออนไลน์' };
+      if (pos === 'side-top') return { image: '/unnamed.jpg', link: '/it-products', title: 'IT Computer Equipment' };
+      if (pos === 'side-bottom') return { image: '/unnamed555.jpg', link: '/discount-products', title: 'Discount Products' };
+      
+      return null;
+  };
 
   if (loading && user) {
     return (
@@ -295,6 +301,10 @@ const UserDashboard = ({ user, stats, loading }) => {
     );
   };
 
+  const mainBanner = getBanner('main');
+  const sideTop = getBanner('side-top');
+  const sideBottom = getBanner('side-bottom');
+
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
       {/* Hero Banner - Shopee Style */}
@@ -302,12 +312,12 @@ const UserDashboard = ({ user, stats, loading }) => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-1">
           {/* Main Banner - Single Image */}
           <Link 
-            to="/products"
+            to={mainBanner?.link || '/products'}
             className="lg:col-span-3 relative h-52 sm:h-60 overflow-hidden shadow-lg group block cursor-pointer"
           >
             <img
-              src="/000000.jpg"
-              alt="ช้อปปิ้งออนไลน์"
+              src={mainBanner?.image}
+              alt={mainBanner?.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               onError={(e) =>
                 (e.target.src = "https://picsum.photos/seed/shop1/1200/400")
@@ -319,13 +329,13 @@ const UserDashboard = ({ user, stats, loading }) => {
           {/* Side Promo Banners */}
           <div className="hidden lg:flex flex-col gap-1 h-52 sm:h-60">
             <Link
-              to="/it-products"
+              to={sideTop?.link || '/products'}
               className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo"
             >
               <div className="relative w-full h-full">
                 <img
-                  src="/unnamed.jpg"
-                  alt="IT Computer Equipment"
+                  src={sideTop?.image}
+                  alt={sideTop?.title}
                   className="w-full h-full object-cover group-hover/promo:scale-105 transition-transform duration-300"
                   onError={(e) =>
                     (e.target.src = "https://picsum.photos/seed/promo1/400/200")
@@ -335,13 +345,13 @@ const UserDashboard = ({ user, stats, loading }) => {
               </div>
             </Link>
             <Link
-              to="/discount-products"
+              to={sideBottom?.link || '/products'}
               className="flex-1 min-h-0 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group/promo"
             >
               <div className="relative w-full h-full">
                 <img
-                  src="/unnamed555.jpg"
-                  alt="promo-2"
+                  src={sideBottom?.image}
+                  alt={sideBottom?.title}
                   className="w-full h-full object-cover group-hover/promo:scale-105 transition-transform duration-300"
                   onError={(e) =>
                     (e.target.src = "https://picsum.photos/seed/promo2/400/200")

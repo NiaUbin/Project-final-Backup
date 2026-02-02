@@ -255,3 +255,30 @@ model Notification {
   @@index([productId])
   @@index([storeId])
 }
+
+model SiteSetting {
+  id                    Int      @id @default(autoincrement())
+  siteName              String   @default("Boxify")
+  description           String?
+  contactEmail          String?
+  contactPhone          String?
+  address               String?  @db.Text
+  shippingFee           Float    @default(50)
+  freeShippingThreshold Float    @default(1000)
+  facebook              String?
+  line                  String?
+  maintenanceMode       Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  image     String   @db.Text
+  link      String?
+  position  String   @default("main") // main, side-top, side-bottom
+  order     Int      @default(0)
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

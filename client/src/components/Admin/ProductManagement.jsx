@@ -15,6 +15,7 @@ const ProductManagement = () => {
   const [productsPerPage, setProductsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedStore, setSelectedStore] = useState('');
 
   useEffect(() => {
     loadProducts();
@@ -43,13 +44,24 @@ const ProductManagement = () => {
     }
   };
 
+  // Derive unique stores from products
+  const uniqueStores = Array.from(
+    new Map(
+      products
+        .filter(p => p.store) // Only products with stores
+        .map(p => [p.store.id, p.store])
+    ).values()
+  );
+
   // Filter & Pagination Logic
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || 
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || product.categoryId === parseInt(selectedCategory);
-    return matchesSearch && matchesCategory;
+    const matchesStore = !selectedStore || (selectedStore === 'admin' ? !product.store : product.store?.id === parseInt(selectedStore));
+    
+    return matchesSearch && matchesCategory && matchesStore;
   });
 
   const indexOfLastProduct = currentPage * productsPerPage;
@@ -59,7 +71,7 @@ const ProductManagement = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, selectedStore]);
 
   const handleDelete = async (product) => {
     if (!window.confirm(`⚠️ คุณต้องการลบสินค้า "${product.title}" หรือไม่?\nการกระทำนี้ไม่สามารถย้อนกลับได้`)) return;
@@ -75,9 +87,9 @@ const ProductManagement = () => {
   };
 
   const getStockStatus = (quantity) => {
-    if (quantity <= 0) return { label: 'สินค้าหมด', color: 'bg-slate-100 text-slate-500 border-slate-200' };
-    if (quantity < 10) return { label: 'สินค้าใกล้หมด', color: 'bg-amber-50 text-amber-700 border-amber-200' };
-    return { label: 'มีสินค้า', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    if (quantity <= 0) return { label: 'หมด', color: 'bg-red-50 text-red-600 border-red-100 ring-1 ring-red-100' };
+    if (quantity < 10) return { label: 'เหลือน้อย', color: 'bg-amber-50 text-amber-600 border-amber-100 ring-1 ring-amber-100' };
+    return { label: 'พร้อมขาย', color: 'bg-emerald-50 text-emerald-600 border-emerald-100 ring-1 ring-emerald-100' };
   };
 
   return (
@@ -112,23 +124,37 @@ const ProductManagement = () => {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <div className="md:col-span-5 relative">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <div className="md:col-span-4 relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ค้นหาชื่อสินค้า, รายละเอียด..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+              placeholder="ค้นหาชื่อสินค้า..."
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
             />
-            <i className="fas fa-search absolute left-3 top-3 text-slate-400 text-sm"></i>
+            <i className="fas fa-search absolute left-3 top-2.5 text-slate-400 text-xs"></i>
           </div>
           
-          <div className="md:col-span-4">
+          <div className="md:col-span-3">
+            <select
+              value={selectedStore}
+              onChange={(e) => setSelectedStore(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
+            >
+              <option value="">ทุกร้านค้า</option>
+              {/* <option value="admin">Boxify Admin</option> */}
+              {uniqueStores.map(store => (
+                <option key={store.id} value={store.id}>{store.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="md:col-span-3">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
             >
               <option value="">ทุกหมวดหมู่</option>
               {categories.map(category => (
@@ -137,15 +163,15 @@ const ProductManagement = () => {
             </select>
           </div>
 
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
              <select
               value={productsPerPage}
               onChange={(e) => setProductsPerPage(Number(e.target.value))}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
             >
-              <option value="10">แสดง 10 รายการ</option>
-              <option value="20">แสดง 20 รายการ</option>
-              <option value="50">แสดง 50 รายการ</option>
+              <option value="10">10 / หน้า</option>
+              <option value="20">20 / หน้า</option>
+              <option value="50">50 / หน้า</option>
             </select>
           </div>
         </div>
@@ -155,12 +181,13 @@ const ProductManagement = () => {
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase tracking-wider font-semibold">
-              <th className="p-4 pl-6">สินค้า</th>
-              <th className="p-4">หมวดหมู่</th>
-              <th className="p-4">ราคา</th>
-              <th className="p-4 text-center">สถานะ</th>
-              <th className="p-4 text-right pr-6">จัดการ</th>
+            <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-xs uppercase tracking-wider font-medium">
+              <th className="py-3 px-6 text-left">สินค้า</th>
+              <th className="py-3 px-4 text-left">ร้านค้า</th>
+              <th className="py-3 px-4 text-center">หมวดหมู่</th>
+              <th className="py-3 px-4 text-right">ราคา</th>
+              <th className="py-3 px-4 text-center">สถานะ</th>
+              <th className="py-3 px-6 text-right">จัดการ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -179,59 +206,75 @@ const ProductManagement = () => {
               currentProducts.map((product) => {
                 const stockStatus = getStockStatus(product.quantity);
                 return (
-                  <tr key={product.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="p-4 pl-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-white border border-slate-200 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  <tr key={product.id} className="hover:bg-slate-50 transition-all border-b border-slate-50 last:border-0 group">
+                    <td className="py-3 px-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
                           {product.images && product.images.length > 0 ? (
                             <img 
                                 src={product.images[0].url || product.images[0].secure_url} 
                                 alt={product.title} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                className="w-full h-full object-cover"
                             />
                           ) : (
-                            <i className="fas fa-image text-slate-300"></i>
+                            <i className="fas fa-image text-slate-300 text-xs"></i>
                           )}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-sm font-semibold text-slate-800 truncate max-w-xs">{product.title}</h4>
-                          <p className="text-xs text-slate-500 truncate max-w-xs mt-0.5">
-                            {product.description?.substring(0, 50) || 'ไม่มีรายละเอียด'}
-                          </p>
+                          <h4 className="text-sm font-medium text-slate-700 truncate max-w-[180px]" title={product.title}>{product.title}</h4>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                        {product.category?.name || 'ไม่ระบุ'}
+                    <td className="py-3 px-4">
+                      <div 
+                        className="flex items-center gap-2 cursor-pointer group/store"
+                        onClick={() => setSelectedStore(product.store?.id ? String(product.store.id) : 'admin')}
+                        title="คลิกเพื่อดูสินค้าจากร้านนี้"
+                      >
+                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-[10px] font-bold border border-slate-200 overflow-hidden group-hover/store:ring-2 group-hover/store:ring-emerald-400 transition-all">
+                          {product.store?.logo ? (
+                            <img src={product.store.logo} alt={product.store.name} className="w-full h-full object-cover" />
+                          ) : (
+                            product.store?.name?.charAt(0) || <i className="fas fa-shield-alt text-indigo-500"></i>
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-600 truncate max-w-[120px] group-hover/store:text-emerald-600 transition-colors">
+                          {product.store?.name || 'Boxify Admin'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                        {product.category?.name || '-'}
                       </span>
                     </td>
-                    <td className="p-4 font-medium text-slate-700">
+                    <td className="py-3 px-4 text-right font-medium text-slate-700 text-sm">
                       ฿{Number(product.price).toLocaleString()}
                     </td>
-                    <td className="p-4 text-center">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${stockStatus.color}`}>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${stockStatus.color}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1 ${stockStatus.label === 'หมด' ? 'bg-red-400' : stockStatus.label === 'เหลือน้อย' ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
                         {stockStatus.label} ({product.quantity})
                       </span>
                     </td>
-                    <td className="p-4 pr-6 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <td className="py-3 px-6 text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => {
                              setEditingProduct(product);
                              setShowCreateForm(true);
                           }}
-                          className="p-2 bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-200 rounded-lg transition-all shadow-sm"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
                           title="แก้ไข"
                         >
-                          <i className="fas fa-edit"></i>
+                          <i className="fas fa-pen text-xs"></i>
                         </button>
                         <button
                           onClick={() => handleDelete(product)}
-                          className="p-2 bg-white border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-200 rounded-lg transition-all shadow-sm"
+                          className="w-7 h-7 flex items-center justify-center rounded bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                           title="ลบ"
                         >
-                          <i className="fas fa-trash-alt"></i>
+                          <i className="fas fa-trash text-xs"></i>
                         </button>
                       </div>
                     </td>
