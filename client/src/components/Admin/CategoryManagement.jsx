@@ -158,7 +158,9 @@ const CategoryManagement = () => {
       toast.success('ลบสำเร็จ');
       loadCategories();
     } catch (e) {
-      toast.error('ลบไม่สำเร็จ');
+      console.error(e);
+      const message = e.response?.data?.message || 'ลบไม่สำเร็จ';
+      toast.error(message);
     }
   };
 
@@ -196,54 +198,47 @@ const CategoryManagement = () => {
             <p className="text-gray-500 text-sm">ยังไม่มีหมวดหมู่</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow group"
+                className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-4 flex flex-col items-center"
               >
-                {/* Compact Image */}
-                <div className="h-14 bg-gray-50 relative">
+                {/* Circular Image */}
+                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-3 overflow-hidden border border-gray-100 relative group">
                   {category.image ? (
                     <img
                       src={category.image}
                       alt={category.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <i className="fas fa-image text-gray-300 text-lg"></i>
-                    </div>
+                    <i className="fas fa-image text-gray-300 text-2xl"></i>
                   )}
                 </div>
                 
-                {/* Compact Info */}
-                <div className="p-2">
-                  <h3 className="text-xs font-medium text-gray-800 truncate" title={category.name}>
-                    {category.name}
-                  </h3>
-                  
-                  {category.subcategories?.length > 0 && (
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {category.subcategories.length} หมวดหมู่ย่อย
-                    </p>
-                  )}
-                  
-                  {/* Compact Actions */}
-                  <div className="flex gap-1 mt-2">
-                    <button
-                      onClick={() => handleEdit(category)}
-                      className="flex-1 py-1 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded text-[10px]"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(category)}
-                      className="flex-1 py-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded text-[10px]"
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
+                {/* Name */}
+                <h3 className="text-sm font-bold text-gray-800 mb-3 text-center line-clamp-2 min-h-[2.5em] flex items-center justify-center">
+                  {category.name}
+                </h3>
+                
+                {/* Actions */}
+                <div className="flex w-full gap-2 mt-auto">
+                  <button
+                    onClick={() => handleEdit(category)}
+                    className="flex-1 py-1.5 bg-amber-400 hover:bg-amber-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1 shadow-sm"
+                  >
+                    <i className="fas fa-edit"></i>
+                    แก้ไข
+                  </button>
+                  <button
+                    onClick={() => handleDelete(category)}
+                    className="flex-1 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1 shadow-sm"
+                  >
+                    <i className="fas fa-trash"></i>
+                    ลบ
+                  </button>
                 </div>
               </div>
             ))}
@@ -252,55 +247,76 @@ const CategoryManagement = () => {
       </div>
 
       {/* Modal Form - Compact */}
+      {/* Modal Form - Compact & Beautiful */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[380px] overflow-hidden flex flex-col transform transition-all animate-fadeInUp">
+            
             {/* Modal Header */}
-            <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-800">
+            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="text-sm font-bold text-gray-800">
                 {editingCategory ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่'}
               </h3>
-              <button onClick={handleCloseForm} className="text-gray-400 hover:text-gray-600">
+              <button 
+                onClick={handleCloseForm} 
+                className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+              >
                 <i className="fas fa-times text-sm"></i>
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-4 overflow-y-auto space-y-4">
-              {/* Image Upload */}
+            <div className="p-5 overflow-y-auto space-y-4 max-h-[70vh]">
+              {/* Image Upload - Compact */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">รูปภาพ</label>
-                <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 overflow-hidden">
-                  {imagePreview ? (
-                    <div className="relative w-full h-full">
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="text-center py-2">
-                      <i className="fas fa-cloud-upload-alt text-gray-400 text-xl mb-1"></i>
-                      <p className="text-xs text-gray-500">อัพโหลดรูป</p>
-                    </div>
-                  )}
-                  <input type="file" className="hidden" accept="image/*" onChange={handleImageFileChange} />
-                </label>
-                
-                {!selectedImageFile && (
-                  <input
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => {
-                      setFormData({ ...formData, image: e.target.value });
-                      if (e.target.value) setImagePreview(e.target.value);
-                    }}
-                    className="mt-2 w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs"
-                    placeholder="หรือวางลิงก์รูปภาพ..."
-                  />
-                )}
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">รูปภาพ</label>
+                <div className="flex items-start gap-3">
+                  <label className="flex-shrink-0 relative w-20 h-20 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all flex flex-col items-center justify-center overflow-hidden group bg-gray-50">
+                    {imagePreview ? (
+                       <>
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i className="fas fa-camera text-white text-sm"></i>
+                        </div>
+                       </>
+                    ) : (
+                      <div className="text-center p-1">
+                        <i className="fas fa-cloud-upload-alt text-gray-400 text-lg mb-0.5"></i>
+                        <span className="text-[9px] text-gray-500 block">อัพโหลด</span>
+                      </div>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" onChange={handleImageFileChange} />
+                  </label>
+                  
+                  <div className="flex-1 min-w-0">
+                    {!selectedImageFile ? (
+                        <div>
+                             <input
+                                type="url"
+                                value={formData.image}
+                                onChange={(e) => {
+                                setFormData({ ...formData, image: e.target.value });
+                                if (e.target.value) setImagePreview(e.target.value);
+                                }}
+                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-orange-200 focus:border-orange-400 transition-all outline-none bg-gray-50/50"
+                                placeholder="หรือวางลิงก์รูปภาพ..."
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1 leading-tight">แนะนำ: รูปสี่เหลี่ยมจัตุรัส (1:1)</p>
+                        </div>
+                    ) : (
+                        <div className="h-full flex flex-col justify-center">
+                            <p className="text-xs font-medium text-gray-800 truncate">{selectedImageFile.name}</p>
+                            <p className="text-[10px] text-gray-500">{(selectedImageFile.size / 1024).toFixed(1)} KB</p>
+                            <button onClick={() => { setSelectedImageFile(null); setImagePreview(formData.image || null); }} className="text-red-500 text-[10px] mt-0.5 hover:underline text-left">ลบไฟล์</button>
+                        </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Name */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
                   ชื่อหมวดหมู่ <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -308,62 +324,64 @@ const CategoryManagement = () => {
                   value={formData.name || ''}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="ชื่อหมวดหมู่"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-orange-200 focus:border-orange-400 transition-all outline-none font-medium bg-gray-50/50"
+                  placeholder="เช่น เสื้อผ้า, อุปกรณ์ไอที"
                 />
               </div>
 
               {/* Subcategories */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
                   หมวดหมู่ย่อย ({formData.subcategories.length})
                 </label>
-                <div className="flex gap-1 mb-2">
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={newSubcategory}
                     onChange={(e) => setNewSubcategory(e.target.value)}
                     onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddSubcategory(); }}}
-                    className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-xs"
+                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-orange-200 focus:border-orange-400 transition-all outline-none bg-gray-50/50"
                     placeholder="เพิ่มหมวดหมู่ย่อย..."
                   />
                   <button
                     type="button"
                     onClick={handleAddSubcategory}
                     disabled={!newSubcategory.trim()}
-                    className="px-3 py-1.5 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg disabled:opacity-50 text-xs"
+                    className="px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-xs"
                   >
                     <i className="fas fa-plus"></i>
                   </button>
                 </div>
                 
-                <div className="flex flex-wrap gap-1.5 min-h-[32px] p-2 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex flex-wrap gap-1.5 min-h-[36px] p-2 bg-gray-50/80 rounded-lg border border-gray-100">
                   {formData.subcategories.length > 0 ? (
                     formData.subcategories.map((sub, index) => (
-                      <span key={index} className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-gray-200 rounded text-xs">
+                      <span key={index} className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 bg-white border border-gray-200 rounded-md text-[10px] font-medium text-gray-600 shadow-sm animate-fadeIn">
                         {sub}
                         <button
                           type="button"
                           onClick={() => handleRemoveSubcategory(index)}
-                          className="text-gray-400 hover:text-red-500"
+                          className="text-gray-400 hover:text-red-500 transition-colors w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-red-50"
                         >
-                          <i className="fas fa-times text-[10px]"></i>
+                          <i className="fas fa-times text-[8px]"></i>
                         </button>
                       </span>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-400 w-full text-center">ยังไม่มี</p>
+                    <div className="w-full text-center py-1 text-gray-400 text-[10px] italic">
+                       - ไม่มีหมวดหมู่ย่อย -
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-5 py-3 border-t border-gray-100 flex justify-end gap-2 bg-gray-50/50">
               <button
                 type="button"
                 onClick={handleCloseForm}
-                className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 rounded-lg text-xs"
+                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-xs font-medium transition-colors"
               >
                 ยกเลิก
               </button>
@@ -371,14 +389,13 @@ const CategoryManagement = () => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting || !formData.name.trim()}
-                className={`px-4 py-1.5 text-white rounded-lg text-xs font-medium ${
+                className={`px-6 py-2 text-white rounded-lg text-xs font-bold shadow-md transition-all transform active:scale-95 ${
                   isSubmitting || !formData.name.trim() 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-orange-500 hover:bg-orange-600'
+                    ? 'bg-gray-400 cursor-not-allowed shadow-none' 
+                    : 'bg-[#ee4d2d] hover:bg-[#d73211] shadow-orange-100'
                 }`}
               >
-                {isSubmitting && <i className="fas fa-spinner fa-spin mr-1"></i>}
-                {editingCategory ? 'บันทึก' : 'สร้าง'}
+                {isSubmitting ? '...' : (editingCategory ? 'บันทึก' : 'สร้าง')}
               </button>
             </div>
           </div>

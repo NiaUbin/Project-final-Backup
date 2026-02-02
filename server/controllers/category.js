@@ -153,6 +153,17 @@ exports.remove = async (req, res) => {
             return res.status(404).json({ message: "ไม่พบหมวดหมู่ที่ต้องการลบ" });
         }
 
+        // ตรวจสอบว่ามีสินค้าในหมวดหมู่นี้หรือไม่
+        const productsCount = await prisma.product.count({
+            where: { categoryId: parseInt(id) }
+        });
+
+        if (productsCount > 0) {
+            return res.status(400).json({ 
+                message: `ไม่สามารถลบได้ เนื่องจากมีสินค้า ${productsCount} รายการ อยู่ในหมวดหมู่นี้` 
+            });
+        }
+
         // ลบรูปภาพจาก Cloudinary ถ้ามี
         if (existingCategory.image) {
             try {

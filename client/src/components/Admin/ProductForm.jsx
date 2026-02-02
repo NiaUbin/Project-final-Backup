@@ -422,45 +422,26 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                การจัดส่ง
+              </label>
+              <label className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-all bg-white">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    name="freeShipping"
+                    checked={productForm.freeShipping}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <span className="text-sm text-gray-700">ส่งฟรี</span>
+                </div>
+                <i className="fas fa-truck text-orange-500"></i>
+              </label>
             </div>
 
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <div className="md:col-span-3">
-                 <h3 className="text-sm font-medium text-gray-900 mb-2">ตั้งค่าส่วนลด (Option)</h3>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ราคาลดเหลือ</label>
-                <input
-                  type="number"
-                  name="discountPrice"
-                  value={productForm.discountPrice}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มลด</label>
-                <input
-                  type="datetime-local"
-                  name="discountStartDate"
-                  value={productForm.discountStartDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุดลด</label>
-                <input
-                  type="datetime-local"
-                  name="discountEndDate"
-                  value={productForm.discountEndDate}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                />
-              </div>
             </div>
-
 
           {/* Subcategories */}
           {productForm.categoryId && availableSubcategories.length > 0 && (
@@ -503,6 +484,43 @@ const ProductForm = ({ editingProduct, onClose, onSuccess, onRefresh, createEndp
               </div>
             </div>
           )}
+
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+            <div className="md:col-span-3">
+               <h3 className="text-sm font-medium text-gray-900 mb-2">ตั้งค่าส่วนลด (Option)</h3>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ราคาลดเหลือ</label>
+              <input
+                type="number"
+                name="discountPrice"
+                value={productForm.discountPrice}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มลด</label>
+              <input
+                type="datetime-local"
+                name="discountStartDate"
+                value={productForm.discountStartDate}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุดลด</label>
+              <input
+                type="datetime-local"
+                name="discountEndDate"
+                value={productForm.discountEndDate}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+          </div>
 
           {/* Description */}
           <div>

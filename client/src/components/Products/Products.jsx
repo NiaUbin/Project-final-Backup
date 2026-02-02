@@ -8,6 +8,44 @@ import { isProductOnDiscount, getCurrentPrice, getDiscountPercentage } from '../
 import { useAuth } from '../../context/AuthContext';
 import PageLoading from '../Common/PageLoading';
 
+// Helper functions
+const hasFreeShipping = (product) => {
+  // 1. Check direct property (if backend supports it)
+  if (product.freeShipping) return true;
+
+  // 2. Check description metadata
+  if (!product.description || typeof product.description !== 'string') return false;
+  
+  try {
+    const trimmedDesc = product.description.trim();
+    if (trimmedDesc.startsWith('{')) {
+      const metadata = JSON.parse(trimmedDesc);
+      return metadata && typeof metadata === 'object' && !!metadata.freeShipping;
+    }
+  } catch (e) {
+    return false;
+  }
+  return false;
+};
+
+// Generate random sold count for demo
+const getRandomSold = (productId) => {
+  const hash = productId.toString().split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return Math.abs(hash) % 10000;
+};
+
+// Generate random rating for demo
+const getRandomRating = (productId) => {
+  const hash = productId.toString().split('').reduce((a, b) => {
+    a = ((a << 3) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return (3.5 + (Math.abs(hash) % 15) / 10).toFixed(1);
+};
+
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -147,15 +185,7 @@ const Products = () => {
   const isAdminOrSeller = user && (user.role === 'admin' || user.role === 'seller');
 
   // Check if product has free shipping
-  const hasFreeShipping = (product) => {
-    if (!product.description) return false;
-    try {
-      const metadata = JSON.parse(product.description);
-      return metadata && typeof metadata === 'object' && metadata.freeShipping === true;
-    } catch (e) {
-      return false;
-    }
-  };
+
 
   // Get product subcategories - use backend parsed field first, fallback to parsing description
   const getProductSubcategories = useCallback((product) => {
@@ -177,6 +207,33 @@ const Products = () => {
     return [];
   }, []);
 
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/products/50');
+      console.log('📦 Products loaded:', response.data.products?.length, 'items');
+      if (response.data.products?.[0]) {
+        const firstProduct = response.data.products[0];
+        console.log('First product debug:', {
+          id: firstProduct.id,
+          title: firstProduct.title,
+          description: firstProduct.description,
+          isJSON: firstProduct.description?.startsWith('{'),
+          hasFreeShipping: hasFreeShipping(firstProduct)
+        });
+        
+        // Debug all free shipping products
+        const freeShippingCount = response.data.products.filter(p => hasFreeShipping(p)).length;
+        console.log('Total products with free shipping:', freeShippingCount);
+      }
+      setProducts(response.data.products || []);
+    } catch (error) {
+      console.error('❌ Error loading products:', error);
+      toast.error('เกิดข้อผิดพลาดในการโหลดสินค้า');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // ฟังก์ชันค้นหาจาก query parameter
   const handleSearchWithQuery = useCallback(async (query) => {
@@ -194,7 +251,7 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, priceRange]);
+  }, [selectedCategory, priceRange, loadProducts]);
 
   // อ่าน query parameter จาก URL และตั้งค่า search query และ category
   useEffect(() => {
@@ -249,7 +306,7 @@ const Products = () => {
       loadProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search]);
+  }, [location.search, loadProducts]);
 
   useEffect(() => {
     loadCategories();
@@ -258,31 +315,9 @@ const Products = () => {
     if (!params.get('q') && !params.get('category')) {
       loadProducts();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadProducts]);
 
-  const loadProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/api/products/50');
-      console.log('📦 Products loaded:', response.data.products?.length, 'items');
-      if (response.data.products?.[0]) {
-        const firstProduct = response.data.products[0];
-        console.log('First product debug:', {
-          id: firstProduct.id,
-          title: firstProduct.title,
-          productSubcategories: firstProduct.productSubcategories,
-          hasDescription: !!firstProduct.description
-        });
-      }
-      setProducts(response.data.products || []);
-    } catch (error) {
-      console.error('❌ Error loading products:', error);
-      toast.error('เกิดข้อผิดพลาดในการโหลดสินค้า');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const loadCategories = async () => {
     try {
@@ -437,23 +472,7 @@ const Products = () => {
     }
   }, [loading, isInitialLoad]);
 
-  // Generate random sold count for demo
-  const getRandomSold = (productId) => {
-    const hash = productId.toString().split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    return Math.abs(hash) % 10000;
-  };
 
-  // Generate random rating for demo
-  const getRandomRating = (productId) => {
-    const hash = productId.toString().split('').reduce((a, b) => {
-      a = ((a << 3) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    return (3.5 + (Math.abs(hash) % 15) / 10).toFixed(1);
-  };
 
   if (loading && isInitialLoad) {
     return <PageLoading text="กำลังโหลดสินค้า..." />;
@@ -652,7 +671,10 @@ const Products = () => {
                       onChange={(e) => setServicesFilters(prev => ({ ...prev, freeShipping: e.target.checked }))}
                       className="w-4 h-4 text-[#ee4d2d] border-gray-300 rounded focus:ring-[#ee4d2d] focus:ring-1"
                     />
-                    <span className="text-sm text-gray-600 group-hover:text-[#ee4d2d]">ส่งฟรี</span>
+                    <div className="flex items-center gap-1.5">
+                      <i className="fas fa-truck text-orange-500 text-xs"></i>
+                      <span className="text-sm text-gray-600 group-hover:text-[#ee4d2d]">ส่งฟรี</span>
+                    </div>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer group">
                     <input

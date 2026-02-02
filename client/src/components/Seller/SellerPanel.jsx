@@ -1029,14 +1029,56 @@ const SellerPanel = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                โลโก้ (URL)
+                โลโก้ร้านค้า
               </label>
-              <input
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="https://..."
-                value={form.logo}
-                onChange={(e) => setForm({ ...form, logo: e.target.value })}
-              />
+              <div className="flex items-center gap-4">
+                 <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0">
+                    {form.logo ? (
+                      <img src={form.logo} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-300">
+                        <i className="fas fa-image"></i>
+                      </div>
+                    )}
+                 </div>
+                 <div className="flex-1">
+                   <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full text-sm text-slate-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-xs file:font-semibold
+                      file:bg-orange-50 file:text-orange-700
+                      hover:file:bg-orange-100"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      
+                      const formData = new FormData();
+                      formData.append('image', file);
+                      
+                      try {
+                        // Show loading toast (using toastId to prevent duplicates/persistence issues if we want, but simple is fine)
+                        // Actually toast.loading requires updating manually usually or dismiss using id.
+                        // Let's uset a simple toast.
+                        
+                        const token = localStorage.getItem("token");
+                        const res = await axios.post('/api/images', formData, {
+                           headers: { Authorization: `Bearer ${token}` }
+                        });
+                        
+                        setForm({ ...form, logo: res.data.url });
+                        toast.success("อัพโหลดโลโก้สำเร็จ");
+                      } catch (err) {
+                        console.error(err);
+                        toast.error("อัพโหลดไม่สำเร็จ");
+                      }
+                    }}
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">แนะนำรูปไฟล์ JPG, PNG ขนาดสี่เหลี่ยมจัตุรัส</p>
+                 </div>
+              </div>
             </div>
           </div>
           <div>
@@ -1187,6 +1229,7 @@ const SellerPanel = () => {
               <div className="w-9 h-9 bg-white p-0.5 rounded-full shadow-sm ring-1 ring-slate-200">
                 <img
                   src={
+                    store?.logo ||
                     user?.picture ||
                     "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                   }
@@ -1196,7 +1239,7 @@ const SellerPanel = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-slate-700 truncate">
-                  {user?.name || "Seller"}
+                  {store?.name || user?.name || "Seller"}
                 </p>
                 <p className="text-xs text-slate-400 truncate">{user?.email}</p>
               </div>
