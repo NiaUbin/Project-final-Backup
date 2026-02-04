@@ -99,13 +99,11 @@ const Products = () => {
       }
 
       // เลื่อนขึ้นบนสุดของหน้าเว็บเมื่อเลือกหมวดหมู่
-      if (!isCurrentlySelected) {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'smooth'
-        });
-      }
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'smooth'
+      });
 
       return newCategories;
     });
@@ -120,6 +118,7 @@ const Products = () => {
 
   // Handle subcategory checkbox toggle - เลือกได้หลาย subcategories
   const handleSubcategoryToggle = (subcategory) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setSelectedSubcategories(prev => {
       const isCurrentlySelected = prev.includes(subcategory);
       const newSubcategories = isCurrentlySelected
@@ -443,6 +442,7 @@ const Products = () => {
   };
 
   const handleSearch = async () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     try {
       setLoading(true);
       const filters = {};
@@ -668,7 +668,10 @@ const Products = () => {
                     <input
                       type="checkbox"
                       checked={servicesFilters.freeShipping}
-                      onChange={(e) => setServicesFilters(prev => ({ ...prev, freeShipping: e.target.checked }))}
+                      onChange={(e) => {
+                        setServicesFilters(prev => ({ ...prev, freeShipping: e.target.checked }));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
                       className="w-4 h-4 text-[#ee4d2d] border-gray-300 rounded focus:ring-[#ee4d2d] focus:ring-1"
                     />
                     <div className="flex items-center gap-1.5">
@@ -680,7 +683,10 @@ const Products = () => {
                     <input
                       type="checkbox"
                       checked={servicesFilters.withDiscount}
-                      onChange={(e) => setServicesFilters(prev => ({ ...prev, withDiscount: e.target.checked }))}
+                      onChange={(e) => {
+                        setServicesFilters(prev => ({ ...prev, withDiscount: e.target.checked }));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
                       className="w-4 h-4 text-[#ee4d2d] border-gray-300 rounded focus:ring-[#ee4d2d] focus:ring-1"
                     />
                     <span className="text-sm text-gray-600 group-hover:text-[#ee4d2d]">มีส่วนลดด้วยน๊ะจ๊ะ</span>
@@ -689,7 +695,10 @@ const Products = () => {
                     <input
                       type="checkbox"
                       checked={servicesFilters.installment}
-                      onChange={(e) => setServicesFilters(prev => ({ ...prev, installment: e.target.checked }))}
+                      onChange={(e) => {
+                        setServicesFilters(prev => ({ ...prev, installment: e.target.checked }));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
                       className="w-4 h-4 text-[#ee4d2d] border-gray-300 rounded focus:ring-[#ee4d2d] focus:ring-1"
                     />
                     <span className="text-sm text-gray-600 group-hover:text-[#ee4d2d]">ผ่อน 0%</span>
@@ -701,6 +710,7 @@ const Products = () => {
               <div className="p-4 pt-0">
                 <button
                   onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     setSearchQuery('');
                     setSelectedCategory('');
                     setSelectedCategories([]);

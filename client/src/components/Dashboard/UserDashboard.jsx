@@ -413,25 +413,25 @@ const UserDashboard = ({ user, stats, loading }) => {
     </div>
     <div className="p-4"> {/* เพิ่ม padding รอบนอกเล็กน้อย */}
       {categoriesLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex flex-col items-center animate-pulse">
               {/* ปรับ skeleton ให้ใหญ่ตามรูปจริง */}
-              <div className="w-16 h-16 bg-gray-200 rounded-full mb-2"></div>
+              <div className="w-14 h-14 bg-gray-200 rounded-full mb-2"></div>
               <div className="w-16 h-3 bg-gray-200 rounded"></div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-4">
           {categories.map((cat) => (
             <Link
               key={cat.id}
               to={`/products?category=${cat.id}`}
               className="flex flex-col items-center group"
             >
-              {/* ปรับขนาดวงกลมจาก w-12 h-12 เป็น w-16 h-16 (หรือ w-20 h-20 ถ้าต้องการใหญ่มาก) */}
-              <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ee4d2d] overflow-hidden transition-all duration-200 shadow-sm">
+              {/* ปรับขนาดวงกลมจาก w-16 h-16 เป็น w-14 h-14 (เล็กลงหน่อย) */}
+              <div className="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ee4d2d] overflow-hidden transition-all duration-200 shadow-sm">
                 {cat.image ? (
                   <img
                     src={cat.image}
@@ -439,12 +439,12 @@ const UserDashboard = ({ user, stats, loading }) => {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
                   />
                 ) : (
-                  <i className="fas fa-tag text-[#ee4d2d] text-xl"></i>
+                  <i className="fas fa-tag text-[#ee4d2d] text-lg"></i>
                 )}
               </div>
               
-              {/* ปรับ font size จาก text-[10px] เป็น text-sm และเพิ่ม font-medium */}
-              <span className="text-sm font-medium text-gray-700 text-center line-clamp-2 mt-2 group-hover:text-[#ee4d2d] transition-colors">
+              {/* ปรับ font size ให้เล็กลงนิดหน่อย */}
+              <span className="text-xs sm:text-sm font-medium text-gray-700 text-center line-clamp-2 mt-2 group-hover:text-[#ee4d2d] transition-colors">
                 {cat.name}
               </span>
             </Link>
